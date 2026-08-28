@@ -1,0 +1,16 @@
+.env
+
+__pycache__/
+*.pyc
+*.pyo
+
+.vscode/
+.idea/
+
+node_modules/
+
+supabase/.temp/
+
+.DS_Store
+
+*.log

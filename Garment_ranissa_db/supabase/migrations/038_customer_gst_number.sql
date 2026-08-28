@@ -1,0 +1,2 @@
+ALTER TABLE customers
+ADD COLUMN IF NOT EXISTS gst_number VARCHAR(15);

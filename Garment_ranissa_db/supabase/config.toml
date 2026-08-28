@@ -1,0 +1,10 @@
+project_id = "ranissa-erp"
+
+[api]
+enabled = true
+
+[db]
+port = 54322
+
+[studio]
+enabled = true
