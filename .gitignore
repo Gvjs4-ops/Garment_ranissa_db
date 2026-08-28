@@ -1,0 +1,32 @@
+# Python virtual environments
+backend/.venv/
+backend/venv/
+venv/
+.venv/
+
+# Python generated files
+__pycache__/
+*.py[cod]
+*.log
+
+# Node modules and Vite build output
+frontend/node_modules/
+frontend/dist/
+node_modules/
+dist/
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# IDE and operating system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Test / coverage artifacts
+.coverage
+htmlcov/
+.pytest_cache/
