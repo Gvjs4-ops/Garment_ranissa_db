@@ -1,0 +1,60 @@
+services:
+  # FastAPI backend
+  - type: web
+    name: jaisimha-garment-erp-api
+    runtime: python
+    plan: free
+    region: singapore
+    branch: deploy
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    autoDeployTrigger: commit
+
+    envVars:
+      - key: APP_NAME
+        value: ERP Platform
+
+      - key: ENVIRONMENT
+        value: production
+
+      - key: DATABASE_URL
+        sync: false
+
+      - key: SUPABASE_URL
+        sync: false
+
+      - key: SUPABASE_KEY
+        sync: false
+
+      - key: JWT_SECRET_KEY
+        sync: false
+
+      - key: JWT_ALGORITHM
+        value: HS256
+
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "60"
+
+      - key: CORS_ORIGINS
+        sync: false
+
+  # React/Vite frontend
+  - type: web
+    name: jaisimha-garment-erp-web
+    runtime: static
+    branch: deploy
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./dist
+    autoDeployTrigger: commit
+
+    envVars:
+      - key: VITE_API_BASE_URL
+        sync: false
+
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

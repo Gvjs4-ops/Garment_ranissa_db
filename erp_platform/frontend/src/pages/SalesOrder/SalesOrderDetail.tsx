@@ -17,47 +17,19 @@ import {
   Typography,
 } from "@mui/material";
 
-import { fetchSalesOrder ,
-	createSalesOrderItem,
- 	deleteSalesOrderItem,
-  	fetchSalesProducts,
-	updateSalesOrderItem,
-	updateSalesOrder,
-	type SalesProduct,
-	fetchSalesCustomers,
-	type SalesCustomer,
+import {
+  fetchSalesOrder,
+  createSalesOrderItem,
+  deleteSalesOrderItem,
+  fetchSalesProducts,
+  updateSalesOrderItem,
+  updateSalesOrder,
+  fetchSalesCustomers,
+  type SalesOrder,
+  type SalesOrderItem,
+  type SalesProduct,
+  type SalesCustomer,
 } from "../../services/sales";
-
-
-type SalesOrderItem = {
-  id: string;
-  product_id: string | null;
-
-  sku: string | null;
-  style_code: string | null;
-  product_name: string | null;
-  color: string | null;
-  size: string | null;
-
-  quantity: number;
-  unit_price: number;
-  line_total: number;
-};
-
-
-type SalesOrder = {
-  id: string;
-  order_number: string;
-  order_date: string;
-  status: string;
-  total_amount: number;
-
-  customer_id: string;
-  customer_name: string | null;
-
-  items: SalesOrderItem[];
-};
-
 
 export default function SalesOrderDetail() {
   const { orderId } = useParams();
@@ -103,7 +75,7 @@ export default function SalesOrderDetail() {
       }
     }
 
-    loadOrder();
+    void loadOrder();
   }, [orderId]);
 
   useEffect(() => {
@@ -116,7 +88,7 @@ export default function SalesOrderDetail() {
       }
     }
 
-    loadProducts();
+    void loadProducts();
   }, []);
 
 
@@ -130,7 +102,7 @@ export default function SalesOrderDetail() {
     }
   }
 
-  loadCustomers();
+  void loadCustomers();
 }, []);
 
   if (loading) {
@@ -524,14 +496,16 @@ const handleSaveItem = async (itemId: string) => {
     </TableHead>
 
     <TableBody>
-      {order.items.length === 0 ? (
+      {
+	      //order.items.length === 0 ? (
+	(order.items ?? []).length === 0 ? (
         <TableRow>
           <TableCell colSpan={8} align="center">
             No order items found.
           </TableCell>
         </TableRow>
       ) : (
-        order.items.map((item) => (
+        (order.items ?? []).map((item) => (
           <TableRow key={item.id}>
             <TableCell>
               {item.sku ?? "-"}

@@ -21,18 +21,9 @@ import {
   createSalesOrder,
   fetchCustomers,
   fetchSalesOrders,
-  type Company,
   type Customer,
+  type SalesOrder,
 } from "../../services/sales";
-
-type SalesOrder = {
-  id: string;
-  order_number: string;
-  order_date: string;
-  status: string;
-  total_amount: number;
-  customer_name: string | null;
-};
 
 export default function SalesOrders() {
   const { activeCompany } = useCompany();
@@ -51,28 +42,6 @@ const [orderDate, setOrderDate] = useState(
 );
 
 const [creating, setCreating] = useState(false);
-  useState<Company | null>(null);
-
-  useEffect(() => {
-  async function loadCompanies() {
-    try {
-      const data = await fetchCompanies();
-
-      setCompanies(data);
-
-      if (data.length > 0) {
-        setActiveCompany(data[0]);
-      }
-    } catch (error) {
-      console.error(
-        "Failed to load companies:",
-        error
-      );
-    }
-  }
-
-  loadCompanies();
-}, []);
 
   useEffect(() => {
   async function loadCustomers() {
@@ -90,7 +59,7 @@ const [creating, setCreating] = useState(false);
     }
   }
 
-  loadCustomers();
+  void loadCustomers();
 }, []);
 
   useEffect(() => {
@@ -105,7 +74,7 @@ const [creating, setCreating] = useState(false);
       }
     }
 
-    loadOrders();
+    void loadOrders();
   }, []);
 
   const handleCreateOrder = async () => {
@@ -117,7 +86,7 @@ const [creating, setCreating] = useState(false);
     setCreating(true);
 
     const newOrder = await createSalesOrder({
-      company_id: string,
+      company_id: activeCompany.id,
       customer_id: selectedCustomer.id,
       order_date: orderDate,
     });

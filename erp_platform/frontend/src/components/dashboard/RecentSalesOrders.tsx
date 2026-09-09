@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import {
   Box,
@@ -15,7 +16,6 @@ import {
   fetchSalesOrders,
   type SalesOrder,
 } from "../../services/sales";
-import { useNavigate } from "react-router-dom";
 
 function formatCurrency(value?: number) {
   if (value === undefined || value === null) {
@@ -40,6 +40,7 @@ function getStatusColor(
   switch (status?.toLowerCase()) {
     case "completed":
     case "confirmed":
+    case "approved":
       return "success";
 
     case "pending":
@@ -55,6 +56,8 @@ function getStatusColor(
 }
 
 export default function RecentSalesOrders() {
+  const navigate = useNavigate();
+
   const [orders, setOrders] = useState<SalesOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -70,21 +73,23 @@ export default function RecentSalesOrders() {
         setOrders(data.slice(0, 5));
       } catch (err) {
         console.error("Failed to load recent sales orders:", err);
-
         setError("Unable to load sales orders.");
       } finally {
         setLoading(false);
       }
     }
 
-    loadOrders();
+    void loadOrders();
   }, []);
-const navigate = useNavigate();
+
   return (
     <Card sx={{ height: "100%" }}>
       <CardContent>
-        <Box mb={2}>
-          <Typography variant="h6" fontWeight={600}>
+        <Box sx={{ mb: 2 }}>
+          <Typography
+            variant="h6"
+            sx={{ fontWeight: 600 }}
+          >
             Recent Sales Orders
           </Typography>
 
@@ -98,9 +103,11 @@ const navigate = useNavigate();
 
         {loading && (
           <Box
-            display="flex"
-            justifyContent="center"
-            py={4}
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              py: 4,
+            }}
           >
             <CircularProgress size={28} />
           </Box>
@@ -124,28 +131,30 @@ const navigate = useNavigate();
         {!loading &&
           !error &&
           orders.map((order, index) => (
-            <Box key={order.id ?? order.order_no}>
+            <Box key={order.id ?? order.order_number}>
               <Box
-                py={1.5}
-		px={1}
-                display="flex"
-                justifyContent="space-between"
-                alignItems="center"
-                gap={2}
-		  onClick={() => navigate(`/sales/orders/${order.id}`)}
-  		sx={{
-    		  cursor: "pointer",
-    		  borderRadius: 2,
-    		  transition: "background-color 0.2s ease",
+                onClick={() =>
+                  navigate(`/sales/orders/${order.id}`)
+                }
+                sx={{
+                  py: 1.5,
+                  px: 1,
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  gap: 2,
+                  cursor: "pointer",
+                  borderRadius: 2,
+                  transition: "background-color 0.2s ease",
 
-    		  "&:hover": {
-      		    bgcolor: "action.hover",
-    		  },
-  		}}
+                  "&:hover": {
+                    bgcolor: "action.hover",
+                  },
+                }}
               >
                 <Box>
-                  <Typography fontWeight={600}>
-                    {order.order_no}
+                  <Typography sx={{ fontWeight: 600 }}>
+                    {order.order_number}
                   </Typography>
 
                   <Typography
@@ -159,11 +168,11 @@ const navigate = useNavigate();
                 <Stack
                   direction="row"
                   spacing={2}
-                  alignItems="center"
+                  sx={{ alignItems: "center" }}
                 >
                   <Typography
                     variant="body2"
-                    fontWeight={600}
+                    sx={{ fontWeight: 600 }}
                   >
                     {formatCurrency(order.total_amount)}
                   </Typography>

@@ -33,7 +33,10 @@ export default function ProductionStatus() {
   return (
     <Card sx={{ height: "100%" }}>
       <CardContent>
-        <Typography variant="h6" fontWeight={600}>
+        <Typography
+          variant="h6"
+          sx={{ fontWeight: 600 }}
+        >
           Production Status
         </Typography>
 
@@ -48,11 +51,16 @@ export default function ProductionStatus() {
         {productionData.map((item) => (
           <Box key={item.label} sx={{ mb: 2.5 }}>
             <Box
-              display="flex"
-              justifyContent="space-between"
-              mb={0.75}
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                mb: 0.75,
+              }}
             >
-              <Typography variant="body2" fontWeight={500}>
+              <Typography
+                variant="body2"
+                sx={{ fontWeight: 500 }}
+              >
                 {item.label}
               </Typography>
 

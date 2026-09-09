@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+
 import {
   Box,
   Grid,
@@ -13,7 +15,6 @@ import KpiCard from "../../components/dashboard/KpiCard";
 import SalesTrendChart from "../../components/dashboard/SalesTrendChart";
 import ProductionStatus from "../../components/dashboard/ProductionStatus";
 import RecentSalesOrders from "../../components/dashboard/RecentSalesOrders";
-import { useEffect, useState } from "react";
 
 import {
   fetchSalesOrders,
@@ -23,41 +24,49 @@ import {
 export default function Dashboard() {
   const [salesOrders, setSalesOrders] = useState<SalesOrder[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
+
   const pendingOrders = salesOrders.filter(
-  (order) => order.status?.toLowerCase() === "pending"
+    (order) => order.status?.toLowerCase() === "pending",
   ).length;
 
   useEffect(() => {
-  async function loadSalesOrders() {
-    try {
-      const data = await fetchSalesOrders();
-      setSalesOrders(data);
-    } catch (error) {
-      console.error("Failed to load sales orders:", error);
-    } finally {
-      setLoadingOrders(false);
+    async function loadSalesOrders() {
+      try {
+        const data = await fetchSalesOrders();
+        setSalesOrders(data);
+      } catch (error) {
+        console.error("Failed to load sales orders:", error);
+      } finally {
+        setLoadingOrders(false);
+      }
     }
-  }
-  loadSalesOrders();
+
+    void loadSalesOrders();
   }, []);
+
   return (
     <Box>
       {/* Dashboard Header */}
-      <Box mb={3}>
-        <Typography variant="h4" fontWeight={700}>
+
+      <Box sx={{ mb: 3 }}>
+        <Typography
+          variant="h4"
+          sx={{ fontWeight: 700 }}
+        >
           Executive Dashboard
         </Typography>
 
         <Typography
           variant="body1"
           color="text.secondary"
-          mt={0.5}
+          sx={{ mt: 0.5 }}
         >
           Overview of your garment business
         </Typography>
       </Box>
 
       {/* KPI Cards */}
+
       <Grid container spacing={3}>
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <KpiCard
@@ -71,10 +80,14 @@ export default function Dashboard() {
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <KpiCard
             title="Sales Orders"
-            value={loadingOrders ? "..." : salesOrders.length.toString()}
+            value={
+              loadingOrders
+                ? "..."
+                : salesOrders.length.toString()
+            }
             subtitle={`${pendingOrders} pending orders`}
             icon={ShoppingCartIcon}
-	    path ="/sales"
+            path="/sales"
           />
         </Grid>
 
@@ -86,11 +99,7 @@ export default function Dashboard() {
             icon={FactoryIcon}
           />
         </Grid>
-	<Grid container spacing={3} sx={{ mt: 0 }}>
-  	  <Grid size={{ xs: 12 }}>
-    	  <RecentSalesOrders />
-  	  </Grid>
-	</Grid>
+
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <KpiCard
             title="Receivables"
@@ -99,16 +108,19 @@ export default function Dashboard() {
             icon={AccountBalanceWalletIcon}
           />
         </Grid>
-	<Grid container spacing={3} sx={{ mt: 0 }}>
-  	  <Grid size={{ xs: 12, md: 6 }}>
-    	    <ProductionStatus />
-  	  </Grid>
 
-  	  <Grid size={{ xs: 12, md: 6 }}>
-    	    <SalesTrendChart />
-  	  </Grid>
+        <Grid size={{ xs: 12 }}>
+          <RecentSalesOrders />
         </Grid>
-	</Grid>
+
+        <Grid size={{ xs: 12, md: 6 }}>
+          <ProductionStatus />
+        </Grid>
+
+        <Grid size={{ xs: 12, md: 6 }}>
+          <SalesTrendChart />
+        </Grid>
+      </Grid>
     </Box>
   );
 }

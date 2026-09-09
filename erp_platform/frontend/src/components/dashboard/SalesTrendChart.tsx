@@ -32,8 +32,11 @@ export default function SalesTrendChart() {
   return (
     <Card sx={{ height: "100%" }}>
       <CardContent>
-        <Box mb={2}>
-          <Typography variant="h6" fontWeight={600}>
+        <Box sx={{ mb: 2 }}>
+          <Typography
+            variant="h6"
+            sx={{ fontWeight: 600 }}
+          >
             Sales Trend
           </Typography>
 
@@ -52,14 +55,15 @@ export default function SalesTrendChart() {
 
               <XAxis dataKey="month" />
 
-              <YAxis
-                tickFormatter={formatCurrency}
-              />
+              <YAxis tickFormatter={formatCurrency} />
 
               <Tooltip
                 formatter={(value) =>
                   typeof value === "number"
-                    ? [`₹${value.toLocaleString("en-IN")}`, "Sales"]
+                    ? [
+                        `₹${value.toLocaleString("en-IN")}`,
+                        "Sales",
+                      ]
                     : [value, "Sales"]
                 }
               />

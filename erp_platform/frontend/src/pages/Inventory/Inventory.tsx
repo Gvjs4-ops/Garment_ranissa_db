@@ -1,9 +1,12 @@
-import { API_BASE_URL } from "../../config/api";
+import { useEffect, useState } from "react";
+
 import {
   Box,
+  Button,
   Card,
   CardContent,
   Chip,
+  IconButton,
   Stack,
   Table,
   TableBody,
@@ -13,9 +16,12 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { useEffect, useState } from "react";
-import Button from "@mui/material/Button";
+
 import AddIcon from "@mui/icons-material/Add";
+import EditIcon from "@mui/icons-material/Edit";
+
+import { API_BASE_URL } from "../../config/api";
+import { fetchProducts } from "../../api/products";
 
 import ReceiveStockDialog from "./ReceiveStockDialog";
 import type {
@@ -23,15 +29,13 @@ import type {
   StockProduct,
   Warehouse,
 } from "./ReceiveStockDialog";
-import IconButton from "@mui/material/IconButton";
-import EditIcon from "@mui/icons-material/Edit";
 
 import EditStockDialog from "./EditStockDialog";
 import type {
   EditableInventoryItem,
   EditStockInput,
 } from "./EditStockDialog";
-import { fetchProducts } from "../../api/products";
+
 interface InventoryItem {
   id: string;
   product_id: string;
@@ -50,90 +54,132 @@ interface InventoryItem {
   quantity_available: number;
   reorder_level: number;
 
-  stock_status: "IN_STOCK" | "LOW_STOCK" | "OUT_OF_STOCK";
+  stock_status:
+    | "IN_STOCK"
+    | "LOW_STOCK"
+    | "OUT_OF_STOCK";
 }
 
 export default function Inventory() {
-  const [inventory, setInventory] = useState<InventoryItem[]>([]);
+  const [inventory, setInventory] =
+    useState<InventoryItem[]>([]);
+
   const [search, setSearch] = useState("");
-  const [receiveDialogOpen, setReceiveDialogOpen] = useState(false);
-  const [products, setProducts] = useState<StockProduct[]>([]);
-  const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [selectedInventoryItem, setSelectedInventoryItem] =
-  useState<EditableInventoryItem | null>(null);
+  const [receiveDialogOpen, setReceiveDialogOpen] =
+    useState(false);
 
-const loadInventory = async () => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/inventory`);
-    //fetch("/api/inventory");
+  const [products, setProducts] =
+    useState<StockProduct[]>([]);
 
-    if (!response.ok) {
-      throw new Error(`Failed to fetch inventory: ${response.status}`);
-    }
+  const [warehouses, setWarehouses] =
+    useState<Warehouse[]>([]);
 
-    const data = await response.json();
-    setInventory(data);
-  } catch (error) {
-    console.error("Failed to load inventory:", error);
-  }
-};
+  const [editDialogOpen, setEditDialogOpen] =
+    useState(false);
 
-const loadProducts = async () => {
-  try {
-    const data = await fetchProducts();
+  const [
+    selectedInventoryItem,
+    setSelectedInventoryItem,
+  ] = useState<EditableInventoryItem | null>(null);
 
-    setProducts(
-      data.map((product) => ({
-        id: product.id,
-        sku: product.sku,
-        name: product.name,
-        color: product.color,
-        size: product.size,
-      }))
-    );
-  } catch (error) {
-    console.error("Failed to load products:", error);
-  }
-};
+  const loadInventory = async () => {
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/inventory`,
+      );
 
-const loadWarehouses = async () => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/inventory/warehouses`);
-    //fetch("/api/inventory/warehouses");
+      if (!response.ok) {
+        throw new Error(
+          `Failed to fetch inventory: ${response.status}`,
+        );
+      }
 
-    if (!response.ok) {
-      throw new Error(
-        `Failed to fetch warehouses: ${response.status}`
+      const data: InventoryItem[] =
+        await response.json();
+
+      setInventory(data);
+    } catch (error) {
+      console.error(
+        "Failed to load inventory:",
+        error,
       );
     }
+  };
 
-    const data = await response.json();
-    setWarehouses(data);
-  } catch (error) {
-    console.error("Failed to load warehouses:", error);
-  }
-};
+  const loadProducts = async () => {
+    try {
+      const data = await fetchProducts();
 
-useEffect(() => {
-  loadInventory();
-  loadProducts();
-  loadWarehouses();
-}, []);
+      setProducts(
+        data.map((product) => ({
+          id: product.id,
+          sku: product.sku,
+          name: product.name,
+          color: product.color,
+          size: product.size,
+        })),
+      );
+    } catch (error) {
+      console.error(
+        "Failed to load products:",
+        error,
+      );
+    }
+  };
 
-  const filteredInventory = inventory.filter((item) => {
-    const value = search.toLowerCase();
+  const loadWarehouses = async () => {
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/inventory/warehouses`,
+      );
 
-    return (
-      item.product_name.toLowerCase().includes(value) ||
-      item.sku?.toLowerCase().includes(value) ||
-      item.style_code?.toLowerCase().includes(value) ||
-      item.warehouse_name.toLowerCase().includes(value)
-    );
-  });
+      if (!response.ok) {
+        throw new Error(
+          `Failed to fetch warehouses: ${response.status}`,
+        );
+      }
+
+      const data: Warehouse[] =
+        await response.json();
+
+      setWarehouses(data);
+    } catch (error) {
+      console.error(
+        "Failed to load warehouses:",
+        error,
+      );
+    }
+  };
+
+  useEffect(() => {
+    void loadInventory();
+    void loadProducts();
+    void loadWarehouses();
+  }, []);
+
+  const filteredInventory = inventory.filter(
+    (item) => {
+      const value = search.toLowerCase();
+
+      return (
+        item.product_name
+          .toLowerCase()
+          .includes(value) ||
+        item.sku
+          ?.toLowerCase()
+          .includes(value) ||
+        item.style_code
+          ?.toLowerCase()
+          .includes(value) ||
+        item.warehouse_name
+          .toLowerCase()
+          .includes(value)
+      );
+    },
+  );
 
   const getStatusColor = (
-    status: InventoryItem["stock_status"]
+    status: InventoryItem["stock_status"],
   ): "success" | "warning" | "error" => {
     if (status === "OUT_OF_STOCK") {
       return "error";
@@ -146,7 +192,9 @@ useEffect(() => {
     return "success";
   };
 
-  const getStatusLabel = (status: InventoryItem["stock_status"]) => {
+  const getStatusLabel = (
+    status: InventoryItem["stock_status"],
+  ) => {
     if (status === "OUT_OF_STOCK") {
       return "Out of Stock";
     }
@@ -159,102 +207,136 @@ useEffect(() => {
   };
 
   const handleReceiveStock = async (
-  receipt: ReceiveStockInput) => {
-  const response = await fetch(`${API_BASE_URL}/inventory/receive`, {
-  //fetch("/api/inventory/receive", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(receipt),
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => null);
-
-    throw new Error(
-      errorData?.detail ||
-        `Failed to receive stock: ${response.status}`
+    receipt: ReceiveStockInput,
+  ) => {
+    const response = await fetch(
+      `${API_BASE_URL}/inventory/receive`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(receipt),
+      },
     );
-  }
 
-  await loadInventory();
-};
+    if (!response.ok) {
+      const errorData = await response
+        .json()
+        .catch(() => null);
 
-const handleEditStock = (item: InventoryItem) => {
-  setSelectedInventoryItem({
-    id: item.id,
-    product_name: item.product_name,
-    warehouse_name: item.warehouse_name,
-    quantity_on_hand: Number(item.quantity_on_hand),
-    reorder_level: Number(item.reorder_level),
-    unit: item.unit,
-  });
+      throw new Error(
+        errorData?.detail ||
+          `Failed to receive stock: ${response.status}`,
+      );
+    }
 
-  setEditDialogOpen(true);
-};
+    await loadInventory();
+  };
 
-const handleUpdateStock = async (
-  inventoryId: string,
-  update: EditStockInput
-) => {
-  const response = await fetch(`${API_BASE_URL}/inventory/${inventoryId}`, {
-  //fetch(`/api/inventory/${inventoryId}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(update),
-  });
+  const handleEditStock = (
+    item: InventoryItem,
+  ) => {
+    setSelectedInventoryItem({
+      id: item.id,
+      product_name: item.product_name,
+      warehouse_name: item.warehouse_name,
+      quantity_on_hand: Number(
+        item.quantity_on_hand,
+      ),
+      reorder_level: Number(item.reorder_level),
+      unit: item.unit,
+    });
 
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => null);
+    setEditDialogOpen(true);
+  };
 
-    throw new Error(
-      errorData?.detail ||
-        `Failed to update stock: ${response.status}`
+  const handleUpdateStock = async (
+    inventoryId: string,
+    update: EditStockInput,
+  ) => {
+    const response = await fetch(
+      `${API_BASE_URL}/inventory/${inventoryId}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(update),
+      },
     );
-  }
 
-  await loadInventory();
-};
+    if (!response.ok) {
+      const errorData = await response
+        .json()
+        .catch(() => null);
+
+      throw new Error(
+        errorData?.detail ||
+          `Failed to update stock: ${response.status}`,
+      );
+    }
+
+    await loadInventory();
+  };
 
   return (
     <Box>
       <Stack
-	direction={{ xs: "column", sm: "row" }}
-	justifyContent="space-between"
-	alignItems={{ xs: "flex-start", sm: "center" }}
-	spacing={2}
-	mb={3}
+        direction={{
+          xs: "column",
+          sm: "row",
+        }}
+        spacing={2}
+        sx={{
+          justifyContent: "space-between",
+          alignItems: {
+            xs: "flex-start",
+            sm: "center",
+          },
+          mb: 3,
+        }}
       >
-      <Box>
-	<Typography variant="h4" fontWeight={700}>
-          Inventory
-        </Typography>
+        <Box>
+          <Typography
+            variant="h4"
+            sx={{ fontWeight: 700 }}
+          >
+            Inventory
+          </Typography>
 
-    	<Typography variant="body2" color="text.secondary">
-	  View current stock levels across products and warehouses.
-	</Typography>
-      </Box>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+          >
+            View current stock levels across products
+            and warehouses.
+          </Typography>
+        </Box>
 
-	<Button
-	  variant="contained"
-	  startIcon={<AddIcon />}
-	  onClick={() => setReceiveDialogOpen(true)}
-	>
-	  Receive Stock
-	</Button>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={() =>
+            setReceiveDialogOpen(true)
+          }
+        >
+          Receive Stock
+        </Button>
       </Stack>
-      
+
       <Card>
         <CardContent>
           <TextField
             fullWidth
             size="small"
-            placeholder="Search by product, SKU, style code or warehouse"
+            placeholder={
+              "Search by product, SKU, style code or warehouse"
+            }
             value={search}
-            onChange={(event) => setSearch(event.target.value)}
+            onChange={(event) =>
+              setSearch(event.target.value)
+            }
             sx={{ mb: 3 }}
           />
 
@@ -265,76 +347,121 @@ const handleUpdateStock = async (
                 <TableCell>Style Code</TableCell>
                 <TableCell>Product</TableCell>
                 <TableCell>Warehouse</TableCell>
-                <TableCell align="right">On Hand</TableCell>
-                <TableCell align="right">Reserved</TableCell>
-                <TableCell align="right">Available</TableCell>
-                <TableCell align="right">Reorder Level</TableCell>
+                <TableCell align="right">
+                  On Hand
+                </TableCell>
+                <TableCell align="right">
+                  Reserved
+                </TableCell>
+                <TableCell align="right">
+                  Available
+                               </TableCell>
+                <TableCell align="right">
+                  Reorder Level
+                </TableCell>
                 <TableCell>Status</TableCell>
-		<TableCell align="center">Actions</TableCell>
+                <TableCell align="center">
+                  Actions
+                </TableCell>
               </TableRow>
             </TableHead>
 
             <TableBody>
               {filteredInventory.length > 0 ? (
                 filteredInventory.map((item) => (
-                  <TableRow key={item.id} hover>
-                    <TableCell>{item.sku || "—"}</TableCell>
-
-                    <TableCell>{item.style_code || "—"}</TableCell>
+                  <TableRow
+                    key={item.id}
+                    hover
+                  >
+                    <TableCell>
+                      {item.sku || "—"}
+                    </TableCell>
 
                     <TableCell>
-                      <Typography fontWeight={600}>
+                      {item.style_code || "—"}
+                    </TableCell>
+
+                    <TableCell>
+                      <Typography
+                        sx={{ fontWeight: 600 }}
+                      >
                         {item.product_name}
                       </Typography>
 
-                      <Typography variant="caption" color="text.secondary">
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                      >
                         {[item.color, item.size]
                           .filter(Boolean)
                           .join(" / ") || "—"}
                       </Typography>
                     </TableCell>
 
-                    <TableCell>{item.warehouse_name}</TableCell>
+                    <TableCell>
+                      {item.warehouse_name}
+                    </TableCell>
 
                     <TableCell align="right">
-                      {Number(item.quantity_on_hand).toLocaleString("en-IN")}{" "}
+                      {Number(
+                        item.quantity_on_hand,
+                      ).toLocaleString("en-IN")}{" "}
                       {item.unit}
                     </TableCell>
 
                     <TableCell align="right">
-                      {Number(item.quantity_reserved).toLocaleString("en-IN")}
+                      {Number(
+                        item.quantity_reserved,
+                      ).toLocaleString("en-IN")}
                     </TableCell>
 
                     <TableCell align="right">
-                      <Typography fontWeight={700}>
-                        {Number(item.quantity_available).toLocaleString("en-IN")}
+                      <Typography
+                        sx={{ fontWeight: 700 }}
+                      >
+                        {Number(
+                          item.quantity_available,
+                        ).toLocaleString("en-IN")}
                       </Typography>
                     </TableCell>
 
                     <TableCell align="right">
-                      {Number(item.reorder_level).toLocaleString("en-IN")}
+                      {Number(
+                        item.reorder_level,
+                      ).toLocaleString("en-IN")}
                     </TableCell>
 
                     <TableCell>
                       <Chip
                         size="small"
-                        label={getStatusLabel(item.stock_status)}
-                        color={getStatusColor(item.stock_status)}
+                        label={getStatusLabel(
+                          item.stock_status,
+                        )}
+                        color={getStatusColor(
+                          item.stock_status,
+                        )}
                       />
                     </TableCell>
-		    <TableCell align="center">
-		      <IconButton
-			size="small"
-			onClick={() => handleEditStock(item)}
-	              >
-		        <EditIcon fontSize="small" />
- 		      </IconButton>
-		    </TableCell>
+
+                    <TableCell align="center">
+                      <IconButton
+                        size="small"
+                        aria-label={`Edit ${item.product_name} stock`}
+                        onClick={() =>
+                          handleEditStock(item)
+                        }
+                      >
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                    </TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={10} align="center">
+                  <TableCell
+                    colSpan={10}
+                    align="center"
+                  >
                     No inventory records found.
                   </TableCell>
                 </TableRow>
@@ -343,22 +470,26 @@ const handleUpdateStock = async (
           </Table>
         </CardContent>
       </Card>
+
       <ReceiveStockDialog
-	open={receiveDialogOpen}
-	products={products}
-	warehouses={warehouses}
-	onClose={() => setReceiveDialogOpen(false)}
-	onSave={handleReceiveStock}
+        open={receiveDialogOpen}
+        products={products}
+        warehouses={warehouses}
+        onClose={() =>
+          setReceiveDialogOpen(false)
+        }
+        onSave={handleReceiveStock}
       />
+
       <EditStockDialog
-	  open={editDialogOpen}
-	  item={selectedInventoryItem}
-	  onClose={() => {
-	    setEditDialogOpen(false);
-	    setSelectedInventoryItem(null);
-	  }}
-	  onSave={handleUpdateStock}
-	/>
+        open={editDialogOpen}
+        item={selectedInventoryItem}
+        onClose={() => {
+          setEditDialogOpen(false);
+          setSelectedInventoryItem(null);
+        }}
+        onSave={handleUpdateStock}
+      />
     </Box>
   );
 }
