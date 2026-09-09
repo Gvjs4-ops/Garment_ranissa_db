@@ -111,7 +111,7 @@ def verify_database():
 
             sys.executable,
 
-            "erp-doctor.py",
+            "run_erp_doctor.py",
 
             "database"
 
@@ -130,7 +130,7 @@ def verify_schema():
 
             sys.executable,
 
-            "erp-doctor.py",
+            "run_erp_doctor.py",
 
             "schema"
 
@@ -149,7 +149,7 @@ def verify_integrity():
 
             sys.executable,
 
-            "erp-doctor.py",
+            "run_erp_doctor.py",
 
             "integrity"
 
@@ -168,7 +168,7 @@ def verify_performance():
 
             sys.executable,
 
-            "erp-doctor.py",
+            "run_erp_doctor.py",
 
             "performance"
 
@@ -187,7 +187,7 @@ def verify_security():
 
             sys.executable,
 
-            "erp-doctor.py",
+            "run_erp_doctor.py",
 
             "security"
 

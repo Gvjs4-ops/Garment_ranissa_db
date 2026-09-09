@@ -1,0 +1,29 @@
+-----git commands for Regular changes-----------------
+git checkout develop
+git pull origin develop
+
+# work on your ERP...
+
+git status
+git add .
+git commit -m "Update development"
+git push origin develop
+---------------------------------------------------
+
+---------git commands for pushing the develop ->deploy---------
+git checkout deploy
+git pull origin deploy
+git merge develop
+git push origin deploy
+-------------------------------------------------------------------
+
+---------git commands for pushing the deploy->main------------
+git checkout main
+git pull origin main
+git merge deploy
+git push origin main
+-------------------------------------------------------------------
+
+# Return to development
+git checkout develop
+git pull origin develop

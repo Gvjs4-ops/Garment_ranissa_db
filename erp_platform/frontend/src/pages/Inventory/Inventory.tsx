@@ -35,7 +35,15 @@ import type {
   EditableInventoryItem,
   EditStockInput,
 } from "./EditStockDialog";
+<<<<<<< HEAD
 
+=======
+import { fetchProducts } from "../../api/products";
+import HistoryIcon from "@mui/icons-material/History";
+
+import StockMovementHistoryDialog from "./StockMovementHistoryDialog";
+import type { StockMovement } from "./StockMovementHistoryDialog";
+>>>>>>> 9bef274 (Notification changes added in this commit)
 interface InventoryItem {
   id: string;
   product_id: string;
@@ -65,8 +73,20 @@ export default function Inventory() {
     useState<InventoryItem[]>([]);
 
   const [search, setSearch] = useState("");
+<<<<<<< HEAD
   const [receiveDialogOpen, setReceiveDialogOpen] =
     useState(false);
+=======
+  const [receiveDialogOpen, setReceiveDialogOpen] = useState(false);
+  const [products, setProducts] = useState<StockProduct[]>([]);
+  const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [selectedInventoryItem, setSelectedInventoryItem] =
+  useState<EditableInventoryItem | null>(null);
+  const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
+  const [historyProductName, setHistoryProductName] = useState("");
+  const [stockMovements, setStockMovements] = useState<StockMovement[]>([]);
+>>>>>>> 9bef274 (Notification changes added in this commit)
 
   const [products, setProducts] =
     useState<StockProduct[]>([]);
@@ -280,6 +300,28 @@ export default function Inventory() {
     await loadInventory();
   };
 
+const handleViewHistory = async (item: InventoryItem) => {
+  try {
+    const response = await fetch(
+      `/api/inventory/${item.id}/movements`
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to fetch stock movements: ${response.status}`
+      );
+    }
+
+    const data = await response.json();
+
+    setStockMovements(data);
+    setHistoryProductName(item.product_name);
+    setHistoryDialogOpen(true);
+  } catch (error) {
+    console.error("Failed to load stock movements:", error);
+  }
+};
+
   return (
     <Box>
       <Stack
@@ -442,6 +484,7 @@ export default function Inventory() {
                         )}
                       />
                     </TableCell>
+<<<<<<< HEAD
 
                     <TableCell align="center">
                       <IconButton
@@ -454,6 +497,23 @@ export default function Inventory() {
                         <EditIcon fontSize="small" />
                       </IconButton>
                     </TableCell>
+=======
+		    <TableCell align="center">
+		  <IconButton
+		    size="small"
+		    onClick={() => handleEditStock(item)}
+		  >
+		    <EditIcon fontSize="small" />
+		  </IconButton>
+
+		  <IconButton
+		    size="small"
+		    onClick={() => handleViewHistory(item)}
+		  >
+	  	     <HistoryIcon fontSize="small" />
+		    </IconButton>
+		   </TableCell>
+>>>>>>> 9bef274 (Notification changes added in this commit)
                   </TableRow>
                 ))
               ) : (
@@ -482,6 +542,7 @@ export default function Inventory() {
       />
 
       <EditStockDialog
+<<<<<<< HEAD
         open={editDialogOpen}
         item={selectedInventoryItem}
         onClose={() => {
@@ -490,6 +551,26 @@ export default function Inventory() {
         }}
         onSave={handleUpdateStock}
       />
+=======
+	  open={editDialogOpen}
+	  item={selectedInventoryItem}
+	  onClose={() => {
+	    setEditDialogOpen(false);
+	    setSelectedInventoryItem(null);
+	  }}
+	  onSave={handleUpdateStock}
+	/>
+	<StockMovementHistoryDialog
+	  open={historyDialogOpen}
+	  productName={historyProductName}
+	  movements={stockMovements}
+	  onClose={() => {
+	  setHistoryDialogOpen(false);
+	  setStockMovements([]);
+	  setHistoryProductName("");
+        }}
+        />
+>>>>>>> 9bef274 (Notification changes added in this commit)
     </Box>
   );
 }

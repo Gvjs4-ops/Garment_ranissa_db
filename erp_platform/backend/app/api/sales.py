@@ -501,6 +501,55 @@ def update_sales_order_item(
 
     return dict(row)
 
+@router.delete("/orders/{order_id}")
+def delete_sales_order(
+    order_id: UUID,
+    db: Session = Depends(get_db),
+):
+    order = db.execute(
+        text("""
+            SELECT id, status
+            FROM sales_orders
+            WHERE id = :order_id
+        """),
+        {"order_id": order_id},
+    ).mappings().first()
+
+    if not order:
+        raise HTTPException(
+            status_code=404,
+            detail="Sales order not found",
+        )
+
+    if order["status"] not in ("DRAFT", "CONFIRMED"):
+        raise HTTPException(
+            status_code=400,
+            detail="Only DRAFT or CONFIRMED sales orders can be deleted",
+        )
+
+    db.execute(
+        text("""
+            DELETE FROM sales_order_items
+            WHERE sales_order_id = :order_id
+        """),
+        {"order_id": order_id},
+    )
+
+    db.execute(
+        text("""
+            DELETE FROM sales_orders
+            WHERE id = :order_id
+        """),
+        {"order_id": order_id},
+    )
+
+    db.commit()
+
+    return {
+        "message": "Sales order deleted",
+        "id": str(order_id),
+    }
+
 @router.delete("/orders/{order_id}/items/{item_id}")
 def delete_sales_order_item(
     order_id: UUID,
@@ -531,6 +580,335 @@ def delete_sales_order_item(
     return {
         "message": "Sales order item deleted",
         "id": str(item_id),
+    }
+
+@router.get("/orders/{order_id}/availability")
+def get_sales_order_availability(
+    order_id: UUID,
+    db: Session = Depends(get_db),
+):
+    order = db.execute(
+        text("""
+            SELECT id, order_number, status
+            FROM sales_orders
+            WHERE id = :order_id
+        """),
+        {"order_id": order_id},
+    ).mappings().first()
+
+    if not order:
+        raise HTTPException(
+            status_code=404,
+            detail="Sales order not found",
+        )
+
+    items = db.execute(
+        text("""
+            SELECT
+                soi.id AS sales_order_item_id,
+                soi.product_id,
+                p.name AS product_name,
+                p.sku,
+                p.color,
+                p.size,
+                soi.quantity AS ordered_quantity,
+
+                COALESCE(SUM(i.quantity_on_hand), 0)
+                    AS quantity_on_hand,
+
+                COALESCE(SUM(i.quantity_reserved), 0)
+                    AS quantity_reserved,
+
+                COALESCE(
+                    SUM(
+                        i.quantity_on_hand -
+                        i.quantity_reserved
+                    ),
+                    0
+                ) AS available_quantity
+
+            FROM sales_order_items soi
+
+            LEFT JOIN products p
+                ON p.id = soi.product_id
+
+            LEFT JOIN inventory i
+                ON i.product_id = soi.product_id
+
+            WHERE soi.sales_order_id = :order_id
+
+            GROUP BY
+                soi.id,
+                soi.product_id,
+                p.name,
+                p.sku,
+                p.color,
+                p.size,
+                soi.quantity
+
+            ORDER BY soi.created_at
+        """),
+        {"order_id": order_id},
+    ).mappings().all()
+
+    result_items = []
+    can_fulfill_completely = True
+
+    for item in items:
+        ordered = float(item["ordered_quantity"])
+        available = float(item["available_quantity"])
+
+        shortage = max(
+            ordered - available,
+            0
+        )
+
+        if shortage > 0:
+            status = "SHORTAGE"
+            can_fulfill_completely = False
+        else:
+            status = "AVAILABLE"
+
+        result_items.append({
+            "sales_order_item_id":
+                str(item["sales_order_item_id"]),
+
+            "product_id":
+                str(item["product_id"]),
+
+            "product_name":
+                item["product_name"],
+
+            "sku":
+                item["sku"],
+
+            "color":
+                item["color"],
+
+            "size":
+                item["size"],
+
+            "ordered_quantity":
+                ordered,
+
+            "quantity_on_hand":
+                float(item["quantity_on_hand"]),
+
+            "quantity_reserved":
+                float(item["quantity_reserved"]),
+
+            "available_quantity":
+                available,
+
+            "shortage_quantity":
+                shortage,
+
+            "status":
+                status,
+        })
+
+    return {
+        "order_id": str(order["id"]),
+        "order_number": order["order_number"],
+        "order_status": order["status"],
+        "can_fulfill_completely":
+            can_fulfill_completely,
+        "items": result_items,
+    }
+
+@router.post("/orders/{order_id}/approve")
+def approve_sales_order(
+    order_id: UUID,
+    db: Session = Depends(get_db),
+):
+    order = db.execute(
+        text("""
+            SELECT
+                id,
+                company_id,
+                status
+            FROM sales_orders
+            WHERE id = :order_id
+        """),
+        {"order_id": order_id},
+    ).mappings().first()
+
+    if not order:
+        raise HTTPException(
+            status_code=404,
+            detail="Sales order not found",
+        )
+
+    if order["status"] != "CONFIRMED":
+        raise HTTPException(
+            status_code=400,
+            detail="Only CONFIRMED sales orders can be approved",
+        )
+
+    items = db.execute(
+        text("""
+            SELECT
+                id,
+                product_id,
+                quantity
+            FROM sales_order_items
+            WHERE sales_order_id = :order_id
+            ORDER BY created_at
+        """),
+        {"order_id": order_id},
+    ).mappings().all()
+
+    if not items:
+        raise HTTPException(
+            status_code=400,
+            detail="Sales order has no items",
+        )
+
+    try:
+        for item in items:
+            required_qty = float(item["quantity"])
+
+            inventory_rows = db.execute(
+                text("""
+                    SELECT
+                        id,
+                        warehouse_id,
+                        quantity_on_hand,
+                        quantity_reserved
+                    FROM inventory
+                    WHERE product_id = :product_id
+                    ORDER BY created_at
+                    FOR UPDATE
+                """),
+                {
+                    "product_id": item["product_id"],
+                },
+            ).mappings().all()
+
+            remaining_qty = required_qty
+
+            for inventory_row in inventory_rows:
+                available_qty = max(
+                    float(inventory_row["quantity_on_hand"])
+                    - float(inventory_row["quantity_reserved"]),
+                    0,
+                )
+
+                if available_qty <= 0:
+                    continue
+
+                reserve_qty = min(
+                    remaining_qty,
+                    available_qty,
+                )
+
+                db.execute(
+                    text("""
+                        UPDATE inventory
+                        SET
+                            quantity_reserved =
+                                quantity_reserved + :reserve_qty,
+                            updated_at = now()
+                        WHERE id = :inventory_id
+                    """),
+                    {
+                        "reserve_qty": reserve_qty,
+                        "inventory_id": inventory_row["id"],
+                    },
+                )
+
+                db.execute(
+                    text("""
+                        INSERT INTO inventory_transactions (
+                            product_id,
+                            warehouse_id,
+                            transaction_type,
+                            quantity,
+                            reference_type,
+                            reference_id,
+                            notes
+                        )
+                        VALUES (
+                            :product_id,
+                            :warehouse_id,
+                            'RESERVATION',
+                            :quantity,
+                            'SALES_ORDER',
+                            :reference_id,
+                            :notes
+                        )
+                    """),
+                    {
+                        "product_id": item["product_id"],
+                        "warehouse_id":
+                            inventory_row["warehouse_id"],
+                        "quantity": reserve_qty,
+                        "reference_id": order_id,
+                        "notes":
+                            "Reserved for approved sales order",
+                    },
+                )
+
+                remaining_qty -= reserve_qty
+
+                if remaining_qty <= 0:
+                    break
+
+            if remaining_qty > 0:
+                db.execute(
+                    text("""
+                        INSERT INTO production_requirements (
+                            company_id,
+                            sales_order_id,
+                            sales_order_item_id,
+                            product_id,
+                            required_quantity,
+                            status
+                        )
+                        VALUES (
+                            :company_id,
+                            :sales_order_id,
+                            :sales_order_item_id,
+                            :product_id,
+                            :required_quantity,
+                            'PENDING'
+                        )
+                    """),
+                    {
+                        "company_id":
+                            order["company_id"],
+                        "sales_order_id":
+                            order_id,
+                        "sales_order_item_id":
+                            item["id"],
+                        "product_id":
+                            item["product_id"],
+                        "required_quantity":
+                            remaining_qty,
+                    },
+                )
+
+        db.execute(
+            text("""
+                UPDATE sales_orders
+                SET status = 'APPROVED'
+                WHERE id = :order_id
+            """),
+            {
+                "order_id": order_id,
+            },
+        )
+
+        db.commit()
+
+    except Exception:
+        db.rollback()
+        raise
+
+    return {
+        "message": "Sales order approved",
+        "order_id": str(order_id),
+        "status": "APPROVED",
     }
 
 @router.get("/products")

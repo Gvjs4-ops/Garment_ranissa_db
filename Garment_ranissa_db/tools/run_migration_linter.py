@@ -9,24 +9,24 @@ Ranissa ERP Migration Linter
 import sys
 from pathlib import Path
 
-from run_migration_linter.scanner import (
+from migration_linter.scanner import (
     discover,
     statistics,
 )
 
-from run_migration_linter.parser import (
+from migration_linter.parser import (
     parse_all,
 )
 
-from run_migration_linter.validator import (
+from migration_linter.validator import (
     validate,
 )
 
-from run_migration_linter.report import (
+from migration_linter.report import (
     print_summary,
 )
 
-from run_migration_linter.utils import (
+from migration_linter.utils import (
     info,
     line,
     success,

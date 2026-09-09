@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import {useNavigate, useParams } from "react-router-dom";
 
 import {
   Autocomplete,
@@ -17,6 +17,7 @@ import {
   Typography,
 } from "@mui/material";
 
+<<<<<<< HEAD
 import {
   fetchSalesOrder,
   createSalesOrderItem,
@@ -31,9 +32,53 @@ import {
   type SalesCustomer,
 } from "../../services/sales";
 
+=======
+import { fetchSalesOrder ,
+	createSalesOrderItem,
+	deleteSalesOrder,
+ 	deleteSalesOrderItem,
+	approveSalesOrder,
+  	fetchSalesProducts,
+	updateSalesOrderItem,
+	updateSalesOrder,
+	type SalesProduct,
+	fetchSalesCustomers,
+	type SalesCustomer,
+} from "../../services/sales";
+
+type SalesOrderItem = {
+  id: string;
+  product_id: string | null;
+
+  sku: string | null;
+  style_code: string | null;
+  product_name: string | null;
+  color: string | null;
+  size: string | null;
+
+  quantity: number;
+  unit_price: number;
+  line_total: number;
+};
+
+
+type SalesOrder = {
+  id: string;
+  order_number: string;
+  order_date: string;
+  status: string;
+  total_amount: number;
+
+  customer_id: string;
+  customer_name: string | null;
+
+  items: SalesOrderItem[];
+};
+
+>>>>>>> 9bef274 (Notification changes added in this commit)
 export default function SalesOrderDetail() {
   const { orderId } = useParams();
-
+  const navigate = useNavigate();
   const [order, setOrder] = useState<SalesOrder | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -91,7 +136,6 @@ export default function SalesOrderDetail() {
     void loadProducts();
   }, []);
 
-
   useEffect(() => {
   async function loadCustomers() {
     try {
@@ -113,8 +157,6 @@ export default function SalesOrderDetail() {
     );
   }
 
-
-
   if (!order) {
     return (
       <Typography>
@@ -122,6 +164,50 @@ export default function SalesOrderDetail() {
       </Typography>
     );
   }
+
+const handleApproveOrder = async () => {
+  if (!orderId || !order) {
+    return;
+  }
+
+  if (order.status !== "CONFIRMED") {
+    return;
+  }
+
+  const confirmed = window.confirm(
+    `Approve sales order ${order.order_number}?\n\n` +
+      "Available stock will be reserved and shortages will be sent to production."
+  );
+
+  if (!confirmed) {
+    return;
+  }
+
+  try {
+    await approveSalesOrder(orderId);
+
+    const refreshedOrder =
+      await fetchSalesOrder(orderId);
+
+    setOrder(refreshedOrder);
+
+    const refreshedAvailability =
+      await fetchSalesOrderAvailability(orderId);
+
+    setAvailability(refreshedAvailability);
+  } catch (error) {
+    console.error(
+      "Failed to approve sales order:",
+      error
+    );
+
+    alert(
+      error instanceof Error
+        ? error.message
+        : "Failed to approve sales order."
+    );
+  }
+};
 
 const handleAddItem = async () => {
   if (!orderId || !selectedProduct) {
@@ -153,7 +239,7 @@ const handleEditHeader = () => {
 
   setEditCustomerId(order.customer_id);
   setEditOrderDate(order.order_date);
-  setEditStatus(order.status);
+//  setEditStatus(order.status);
   setEditingHeader(true);
 };
 
@@ -170,7 +256,7 @@ const handleSaveHeader = async () => {
     await updateSalesOrder(orderId, {
       customer_id: editCustomerId,
       order_date: editOrderDate,
-      status: editStatus,
+      //status: editStatus,
     });
 
     const refreshedOrder = await fetchSalesOrder(orderId);
@@ -203,6 +289,103 @@ const handleDeleteItem = async (itemId: string) => {
     console.error(
       "Failed to delete sales order item:",
       error
+    );
+  }
+};
+
+const handleConfirmOrder = async () => {
+  if (!orderId || !order) {
+    return;
+  }
+
+  if (order.items.length === 0) {
+    alert("Add at least one item before confirming the order.");
+    return;
+  }
+
+  try {
+    await updateSalesOrder(orderId, {
+      status: "CONFIRMED",
+    });
+
+    const refreshedOrder =
+      await fetchSalesOrder(orderId);
+
+    setOrder(refreshedOrder);
+  } catch (error) {
+    console.error(
+      "Failed to confirm sales order:",
+      error
+    );
+  }
+};
+
+const handleCancelOrder = async () => {
+  if (!orderId || !order) {
+    return;
+  }
+
+  if (order.status !== "CONFIRMED") {
+    return;
+  }
+
+  const confirmed = window.confirm(
+    `Cancel sales order ${order.order_number}?`
+  );
+
+  if (!confirmed) {
+    return;
+  }
+
+  try {
+    await updateSalesOrder(orderId, {
+      status: "CANCELLED",
+    });
+
+    const refreshedOrder =
+      await fetchSalesOrder(orderId);
+
+    setOrder(refreshedOrder);
+  } catch (error) {
+    console.error(
+      "Failed to cancel sales order:",
+      error
+    );
+  }
+};
+
+const handleDeleteOrder = async () => {
+  if (!orderId || !order) {
+    return;
+  }
+
+  if (order.status !== "DRAFT") {
+    return;
+  }
+
+  const confirmed = window.confirm(
+    `Delete sales order ${order.order_number}?\n\n` +
+      "This will permanently delete this draft and its items."
+  );
+
+  if (!confirmed) {
+    return;
+  }
+
+  try {
+    await deleteSalesOrder(orderId);
+
+    navigate("/sales");
+  } catch (error) {
+    console.error(
+      "Failed to delete sales order:",
+      error
+    );
+
+    alert(
+      error instanceof Error
+        ? error.message
+        : "Failed to delete sales order."
     );
   }
 };
@@ -249,7 +432,7 @@ const handleSaveItem = async (itemId: string) => {
       <Typography variant="h4" sx={{ mb: 3 }}>
         Sales Order {order.order_number}
       </Typography>
-
+{order.status === "DRAFT" && (
       <Paper sx={{ p: 3, mb: 3 }}>
   <Typography variant="h6" sx={{ mb: 2 }}>
     Add Item
@@ -333,7 +516,7 @@ const handleSaveItem = async (itemId: string) => {
     </Button>
   </Box>
 </Paper>
-
+)}
 <Paper sx={{ p: 3, mb: 3 }}>
   {editingHeader ? (
     <>
@@ -382,40 +565,7 @@ const handleSaveItem = async (itemId: string) => {
             shrink: true,
           },
         }}
-      />
-
-      {/* STATUS */}
-      <TextField
-        select
-        label="Status"
-        value={editStatus}
-        onChange={(e) =>
-          setEditStatus(e.target.value)
-        }
-        fullWidth
-        sx={{ mb: 2 }}
-        slotProps={{
-          select: {
-            native: true,
-          },
-        }}
-      >
-        <option value="DRAFT">
-          DRAFT
-        </option>
-
-        <option value="CONFIRMED">
-          CONFIRMED
-        </option>
-
-        <option value="APPROVED">
-          APPROVED
-        </option>
-
-        <option value="CANCELLED">
-          CANCELLED
-        </option>
-      </TextField>
+      />   
 
       <Button
         variant="contained"
@@ -452,15 +602,56 @@ const handleSaveItem = async (itemId: string) => {
           size="small"
         />
       </Box>
-
+{order.status === "DRAFT" && (
       <Button
         variant="outlined"
         onClick={handleEditHeader}
       >
         Edit Header
       </Button>
+)}
     </>
   )}
+{order.status === "DRAFT" && (
+  <Button
+    variant="contained"
+    onClick={handleConfirmOrder}
+    disabled={order.items.length === 0}
+    sx={{ ml: 1 }}
+  >
+    Confirm Order
+  </Button>
+)}
+{order.status === "DRAFT" && (
+  <Button
+    variant="outlined"
+    color="error"
+    onClick={handleDeleteOrder}
+    sx={{ ml: 1 }}
+  >
+    Delete Draft
+  </Button>
+)}
+{order.status === "CONFIRMED" && (
+  <Button
+    variant="outlined"
+    color="error"
+    onClick={handleCancelOrder}
+    sx={{ ml: 1 }}
+  >
+    Cancel Order
+  </Button>
+)}
+
+{order.status === "CONFIRMED" && (
+  <Button
+    variant="contained"
+    onClick={handleApproveOrder}
+    sx={{ ml: 1 }}
+  >
+    Approve Order
+  </Button>
+)}
 </Paper>
 
       {/* ORDER ITEMS */}
@@ -582,48 +773,53 @@ const handleSaveItem = async (itemId: string) => {
             </TableCell>
 
             {/* ACTIONS */}
-            <TableCell align="right">
-              {editingItemId === item.id ? (
-                <>
-                  <Button
-                    size="small"
-                    onClick={() =>
-                      handleSaveItem(item.id)
-                    }
-                  >
-                    Save
-                  </Button>
+<TableCell align="right">
+  {editingItemId === item.id ? (
+    <>
+      <Button
+        size="small"
+        onClick={() => handleSaveItem(item.id)}
+      >
+        Save
+      </Button>
 
-                  <Button
-                    size="small"
-                    onClick={handleCancelEdit}
-                  >
-                    Cancel
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button
-                    size="small"
-                    onClick={() =>
-                      handleEditItem(item)
-                    }
-                  >
-                    Edit
-                  </Button>
+      <Button
+        size="small"
+        onClick={handleCancelEdit}
+      >
+        Cancel
+      </Button>
+    </>
+  ) : (
+    <>
+      {order.status === "DRAFT" ? (
+        <>
+          <Button
+            size="small"
+            onClick={() => handleEditItem(item)}
+          >
+            Edit
+          </Button>
 
-                  <Button
-                    color="error"
-                    size="small"
-                    onClick={() =>
-                      handleDeleteItem(item.id)
-                    }
-                  >
-                    Delete
-                  </Button>
-                </>
-              )}
-            </TableCell>
+          <Button
+            color="error"
+            size="small"
+            onClick={() => handleDeleteItem(item.id)}
+          >
+            Delete
+          </Button>
+        </>
+      ) : (
+        <Typography
+          variant="body2"
+          color="text.secondary"
+        >
+          Locked
+        </Typography>
+      )}
+    </>
+  )}
+</TableCell>
           </TableRow>
         ))
       )}

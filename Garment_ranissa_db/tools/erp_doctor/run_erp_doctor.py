@@ -1,14 +1,14 @@
 import argparse
 
-from tools.erp_doctor.checks.database import run as database_check
-from tools.erp_doctor.checks.inventory import run as inventory_check
-from tools.erp_doctor.checks.production import run as production_check
-from tools.erp_doctor.checks.accounting import run as accounting_check
-from tools.erp_doctor.checks.security import run as security_check
-from tools.erp_doctor.checks.performance import run as performance_check
-from tools.erp_doctor.checks.costing import run as costing_check
-from tools.erp_doctor.checks.schema import run as schema_check
-from tools.erp_doctor.checks.integrity import run as integrity_check
+from checks.database import run as database_check
+from checks.inventory import run as inventory_check
+from checks.production import run as production_check
+from checks.accounting import run as accounting_check
+from checks.security import run as security_check
+from checks.performance import run as performance_check
+from checks.costing import run as costing_check
+from checks.schema import run as schema_check
+from checks.integrity import run as integrity_check
 
 def main():
 

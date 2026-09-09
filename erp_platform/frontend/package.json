@@ -16,6 +16,7 @@
     "@mui/icons-material": "^9.3.0",
     "@mui/material": "^9.3.0",
     "@mui/x-data-grid": "^9.10.1",
+    "@supabase/supabase-js": "^2.113.0",
     "axios": "^1.19.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",

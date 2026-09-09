@@ -82,36 +82,6 @@ export interface Customer {
   email: string | null;
   address: string | null;
   tax_number: string | null;
-  credit_limit: number;
-  is_active: boolean;
-}
-
-export interface CustomerCreate {
-  name: string;
-  phone?: string;
-  email?: string;
-  address?: string;
-  tax_number?: string;
-  credit_limit?: number;
-}
-
-export interface CustomerUpdate {
-  name?: string;
-  phone?: string | null;
-  email?: string | null;
-  address?: string | null;
-  tax_number?: string | null;
-  credit_limit?: number;
-  is_active?: boolean;
-}
-
-export interface Customer {
-  id: string;
-  name: string;
-  phone: string | null;
-  email: string | null;
-  address: string | null;
-  tax_number: string | null;
   gst_number: string | null;
   credit_limit: number;
   is_active: boolean;
@@ -198,10 +168,15 @@ export async function createSalesOrderItem(
     }
   );
 
-  if (!response.ok) {
-    throw new Error("Failed to create sales order item");
-  }
+if (!response.ok) {
+  const errorData = await response.json();
 
+  console.error("Create sales order item API error:", errorData);
+
+  throw new Error(
+    `Failed to create sales order: ${response.status}`
+  );
+}
   return response.json();
 }
 
@@ -252,6 +227,33 @@ export async function updateSalesOrder(
   return response.json();
 }
 
+export async function deleteSalesOrder(
+  orderId: string
+) {
+  const response = await fetch(
+    `${API_BASE_URL}/sales/orders/${orderId}`,
+    {
+      method: "DELETE",
+    }
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json();
+
+    console.error(
+      "Delete sales order API error:",
+      errorData
+    );
+
+    throw new Error(
+      errorData.detail ||
+        `Failed to delete sales order: ${response.status}`
+    );
+  }
+
+  return response.json();
+}
+
 export async function deleteSalesOrderItem(
   orderId: string,
   itemId: string
@@ -265,6 +267,67 @@ export async function deleteSalesOrderItem(
 
   if (!response.ok) {
     throw new Error("Failed to delete sales order item");
+  }
+
+  return response.json();
+}
+
+export interface SalesOrderAvailabilityItem {
+  sales_order_item_id: string;
+  product_id: string;
+  product_name: string | null;
+  sku: string | null;
+  color: string | null;
+  size: string | null;
+  ordered_quantity: number;
+  quantity_on_hand: number;
+  quantity_reserved: number;
+  available_quantity: number;
+  shortage_quantity: number;
+  status: "AVAILABLE" | "SHORTAGE";
+}
+
+export interface SalesOrderAvailability {
+  order_id: string;
+  order_number: string;
+  order_status: string;
+  can_fulfill_completely: boolean;
+  items: SalesOrderAvailabilityItem[];
+}
+
+export async function fetchSalesOrderAvailability(
+  orderId: string
+): Promise<SalesOrderAvailability> {
+  const response = await fetch(
+    `${API_BASE_URL}/sales/orders/${orderId}/availability`
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch sales order availability: ${response.status}`
+    );
+  }
+
+  return response.json();
+}
+
+export async function approveSalesOrder(
+  orderId: string
+) {
+  const response = await fetch(
+    `${API_BASE_URL}/sales/orders/${orderId}/approve`,
+    {
+      method: "POST",
+    }
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json();
+
+    throw new Error(
+      errorData.detail ||
+        `Failed to approve sales order: ${response.status}`
+    );
   }
 
   return response.json();
@@ -294,7 +357,6 @@ export async function fetchSalesCustomers(): Promise<SalesCustomer[]> {
   return response.json();
 }
 
-
 export async function createSalesOrder(
   payload: SalesOrderCreate
 ) {
@@ -310,6 +372,11 @@ export async function createSalesOrder(
   );
 
   if (!response.ok) {
+    const errorData = await response.json();
+
+    console.error("Create sales order API error:", errorData);
+    console.error("Payload sent:", payload);
+
     throw new Error(
       `Failed to create sales order: ${response.status}`
     );

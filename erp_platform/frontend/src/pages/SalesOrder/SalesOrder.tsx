@@ -77,7 +77,7 @@ const [creating, setCreating] = useState(false);
     void loadOrders();
   }, []);
 
-  const handleCreateOrder = async () => {
+const handleCreateOrder = async () => {
   if (!activeCompany || !selectedCustomer || !orderDate) {
     return;
   }
@@ -85,11 +85,19 @@ const [creating, setCreating] = useState(false);
   try {
     setCreating(true);
 
+<<<<<<< HEAD
     const newOrder = await createSalesOrder({
+=======
+    const payload = {
+>>>>>>> 9bef274 (Notification changes added in this commit)
       company_id: activeCompany.id,
       customer_id: selectedCustomer.id,
       order_date: orderDate,
-    });
+    };
+
+    console.log("Create order payload:", payload);
+
+    const newOrder = await createSalesOrder(payload);
 
     setSelectedCustomer(null);
     setShowCreateForm(false);
@@ -104,7 +112,6 @@ const [creating, setCreating] = useState(false);
     setCreating(false);
   }
 };
-
   return (
     <Box>
 

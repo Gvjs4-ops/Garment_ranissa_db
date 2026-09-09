@@ -286,3 +286,51 @@ def update_inventory_stock(
     except Exception:
         db.rollback()
         raise
+
+@router.get("/{inventory_id}/movements")
+def get_inventory_movements(
+    inventory_id: str,
+    db: Session = Depends(get_db),
+):
+    inventory_query = text("""
+        SELECT
+            id,
+            product_id,
+            warehouse_id
+        FROM inventory
+        WHERE id = :inventory_id
+    """)
+
+    inventory_item = db.execute(
+        inventory_query,
+        {"inventory_id": inventory_id},
+    ).mappings().first()
+
+    if not inventory_item:
+        raise HTTPException(
+            status_code=404,
+            detail="Inventory record not found.",
+        )
+
+    movements_query = text("""
+        SELECT
+            id,
+            transaction_type,
+            quantity,
+            notes,
+            created_at
+        FROM inventory_transactions
+        WHERE product_id = :product_id
+          AND warehouse_id = :warehouse_id
+        ORDER BY created_at DESC
+    """)
+
+    movements = db.execute(
+        movements_query,
+        {
+            "product_id": inventory_item["product_id"],
+            "warehouse_id": inventory_item["warehouse_id"],
+        },
+    ).mappings().all()
+
+    return [dict(row) for row in movements]

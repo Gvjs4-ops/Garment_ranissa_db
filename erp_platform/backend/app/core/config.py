@@ -13,6 +13,7 @@ class Settings(BaseSettings):
 
     SUPABASE_URL: str
     SUPABASE_KEY: str
+    SUPABASE_SECRET_KEY: str
 
     JWT_SECRET_KEY: str
     JWT_ALGORITHM: str

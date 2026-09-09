@@ -8,13 +8,17 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import BusinessIcon from "@mui/icons-material/Business";
 
 import type { SvgIconComponent } from "@mui/icons-material";
+<<<<<<< HEAD
 
+=======
+import ManageAccountsOutlinedIcon from "@mui/icons-material/ManageAccountsOutlined";
+>>>>>>> 9bef274 (Notification changes added in this commit)
 export interface NavigationItem {
   id: string;
   title: string;
   path: string;
   icon: SvgIconComponent;
-  permission?: string;
+  roles?: string[];
 }
 
 export interface NavigationGroup {
@@ -45,6 +49,14 @@ export const navigation: NavigationGroup[] = [
         title: "Company",
         path: "/company",
         icon: BusinessIcon,
+        roles: ["ADMIN"],
+      },
+      {
+        id: "users",
+        title: "Users",
+        path: "/users",
+        icon: ManageAccountsOutlinedIcon,
+        roles: ["ADMIN"],
       },
       {
         id: "customers",
