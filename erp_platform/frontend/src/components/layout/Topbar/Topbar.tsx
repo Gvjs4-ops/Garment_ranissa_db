@@ -15,7 +15,6 @@ import NotificationsNoneOutlinedIcon from
 
 import { useCompany } from "../../../contexts/CompanyContext";
 
-
 export default function Topbar() {
   const TOPBAR_HEIGHT = 72;
 
@@ -32,28 +31,25 @@ export default function Topbar() {
       color="inherit"
       elevation={1}
       sx={{
-        zIndex: (theme) =>
-          theme.zIndex.drawer + 1,
+        zIndex: (theme) => theme.zIndex.drawer + 1,
       }}
     >
       <Toolbar
         sx={{
-          minHeight:
-            `${TOPBAR_HEIGHT}px !important`,
+          minHeight: `${TOPBAR_HEIGHT}px !important`,
         }}
       >
         {/* LEFT */}
 
         <Typography
           variant="h6"
-          fontWeight={700}
           color="primary"
+          sx={{ fontWeight: 700 }}
         >
           Garment ERP
         </Typography>
 
         <Box sx={{ flexGrow: 1 }} />
-
 
         {/* RIGHT */}
 
@@ -66,15 +62,11 @@ export default function Topbar() {
         >
           {/* NOTIFICATION */}
 
-          <IconButton>
-            <Badge
-              badgeContent={3}
-              color="error"
-            >
+          <IconButton aria-label="Notifications">
+            <Badge badgeContent={3} color="error">
               <NotificationsNoneOutlinedIcon />
             </Badge>
           </IconButton>
-
 
           {/* COMPANY */}
 
@@ -86,13 +78,10 @@ export default function Topbar() {
             onChange={(_, value) => {
               setActiveCompany(value);
             }}
-            getOptionLabel={(company) =>
-              company.name
+            getOptionLabel={(company) => company.name}
+            isOptionEqualToValue={(option, value) =>
+              option.id === value.id
             }
-            isOptionEqualToValue={(
-              option,
-              value
-            ) => option.id === value.id}
             sx={{
               width: 250,
             }}
@@ -103,7 +92,6 @@ export default function Topbar() {
               />
             )}
           />
-
 
           {/* USER */}
 
@@ -126,8 +114,10 @@ export default function Topbar() {
             <Box>
               <Typography
                 variant="body2"
-                fontWeight={600}
-                lineHeight={1.2}
+                sx={{
+                  fontWeight: 600,
+                  lineHeight: 1.2,
+                }}
               >
                 Administrator
               </Typography>

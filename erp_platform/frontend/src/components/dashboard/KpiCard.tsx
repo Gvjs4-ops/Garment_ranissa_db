@@ -48,23 +48,27 @@ export default function KpiCard({
     >
       <CardContent>
         <Box
-          display="flex"
-          justifyContent="space-between"
-          alignItems="flex-start"
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+          }}
         >
           <Box>
             <Typography
               variant="body2"
               color="text.secondary"
-              fontWeight={500}
+              sx={{ fontWeight: 500 }}
             >
               {title}
             </Typography>
 
             <Typography
               variant="h4"
-              fontWeight={700}
-              sx={{ mt: 1 }}
+              sx={{
+                mt: 1,
+                fontWeight: 700,
+              }}
             >
               {value}
             </Typography>

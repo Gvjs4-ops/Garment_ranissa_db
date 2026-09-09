@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+
 import {
   Alert,
   Button,
@@ -9,7 +11,6 @@ import {
   Stack,
   TextField,
 } from "@mui/material";
-import { useEffect, useState } from "react";
 
 export interface StockProduct {
   id: string;
@@ -55,7 +56,9 @@ export default function ReceiveStockDialog({
   onClose,
   onSave,
 }: ReceiveStockDialogProps) {
-  const [form, setForm] = useState<ReceiveStockInput>(initialForm);
+  const [form, setForm] =
+    useState<ReceiveStockInput>(initialForm);
+
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -68,10 +71,10 @@ export default function ReceiveStockDialog({
 
   const handleChange = (
     field: keyof ReceiveStockInput,
-    value: string | number
+    value: string | number,
   ) => {
-    setForm((prev) => ({
-      ...prev,
+    setForm((previous) => ({
+      ...previous,
       [field]: value,
     }));
   };
@@ -112,7 +115,7 @@ export default function ReceiveStockDialog({
       setError(
         error instanceof Error
           ? error.message
-          : "Failed to receive stock."
+          : "Failed to receive stock.",
       );
     } finally {
       setSaving(false);
@@ -129,24 +132,41 @@ export default function ReceiveStockDialog({
       <DialogTitle>Receive Stock</DialogTitle>
 
       <DialogContent>
-        <Stack spacing={2} mt={1}>
-          {error && <Alert severity="error">{error}</Alert>}
+        <Stack
+          spacing={2}
+          sx={{ mt: 1 }}
+        >
+          {error && (
+            <Alert severity="error">
+              {error}
+            </Alert>
+          )}
 
           <TextField
             select
             label="Product"
             value={form.product_id}
-            onChange={(e) =>
-              handleChange("product_id", e.target.value)
+            onChange={(event) =>
+              handleChange(
+                "product_id",
+                event.target.value,
+              )
             }
             fullWidth
             required
           >
             {products.map((product) => (
-              <MenuItem key={product.id} value={product.id}>
+              <MenuItem
+                key={product.id}
+                value={product.id}
+              >
                 {product.sku || "No SKU"} — {product.name}
-                {product.color ? ` / ${product.color}` : ""}
-                {product.size ? ` / ${product.size}` : ""}
+                {product.color
+                  ? ` / ${product.color}`
+                  : ""}
+                {product.size
+                  ? ` / ${product.size}`
+                  : ""}
               </MenuItem>
             ))}
           </TextField>
@@ -155,14 +175,20 @@ export default function ReceiveStockDialog({
             select
             label="Warehouse"
             value={form.warehouse_id}
-            onChange={(e) =>
-              handleChange("warehouse_id", e.target.value)
+            onChange={(event) =>
+              handleChange(
+                "warehouse_id",
+                event.target.value,
+              )
             }
             fullWidth
             required
           >
             {warehouses.map((warehouse) => (
-              <MenuItem key={warehouse.id} value={warehouse.id}>
+              <MenuItem
+                key={warehouse.id}
+                value={warehouse.id}
+              >
                 {warehouse.name}
               </MenuItem>
             ))}
@@ -176,10 +202,17 @@ export default function ReceiveStockDialog({
               label="Quantity Received"
               type="number"
               value={form.quantity}
-              onChange={(e) =>
-                handleChange("quantity", Number(e.target.value))
+              onChange={(event) =>
+                handleChange(
+                  "quantity",
+                  Number(event.target.value),
+                )
               }
-              inputProps={{ min: 1 }}
+              slotProps={{
+                htmlInput: {
+                  min: 1,
+                },
+              }}
               fullWidth
               required
             />
@@ -188,13 +221,17 @@ export default function ReceiveStockDialog({
               label="Reorder Level"
               type="number"
               value={form.reorder_level}
-              onChange={(e) =>
+              onChange={(event) =>
                 handleChange(
                   "reorder_level",
-                  Number(e.target.value)
+                  Number(event.target.value),
                 )
               }
-              inputProps={{ min: 0 }}
+              slotProps={{
+                htmlInput: {
+                  min: 0,
+                },
+              }}
               fullWidth
             />
           </Stack>
@@ -202,8 +239,8 @@ export default function ReceiveStockDialog({
           <TextField
             label="Notes"
             value={form.notes}
-            onChange={(e) =>
-              handleChange("notes", e.target.value)
+            onChange={(event) =>
+              handleChange("notes", event.target.value)
             }
             placeholder="Example: Opening stock / Supplier delivery"
             multiline

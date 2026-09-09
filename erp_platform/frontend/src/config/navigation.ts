@@ -3,12 +3,12 @@ import PeopleIcon from "@mui/icons-material/People";
 import Inventory2Icon from "@mui/icons-material/Inventory2";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import WarehouseIcon from "@mui/icons-material/Warehouse";
-import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import AssessmentIcon from "@mui/icons-material/Assessment";
 import SettingsIcon from "@mui/icons-material/Settings";
 import BusinessIcon from "@mui/icons-material/Business";
 
 import type { SvgIconComponent } from "@mui/icons-material";
+
 export interface NavigationItem {
   id: string;
   title: string;
@@ -36,7 +36,6 @@ export const navigation: NavigationGroup[] = [
       },
     ],
   },
-
   {
     id: "masters",
     title: "Masters",
@@ -61,7 +60,6 @@ export const navigation: NavigationGroup[] = [
       },
     ],
   },
-
   {
     id: "sales",
     title: "Sales",
@@ -74,7 +72,6 @@ export const navigation: NavigationGroup[] = [
       },
     ],
   },
-
   {
     id: "inventory",
     title: "Inventory",
@@ -87,7 +84,6 @@ export const navigation: NavigationGroup[] = [
       },
     ],
   },
-
   {
     id: "reports",
     title: "Reports",
@@ -100,7 +96,6 @@ export const navigation: NavigationGroup[] = [
       },
     ],
   },
-
   {
     id: "settings",
     title: "Settings",

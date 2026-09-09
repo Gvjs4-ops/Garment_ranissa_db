@@ -31,18 +31,6 @@ import {
   updateProduct,
 } from "../../api/products";
 
-interface Product {
-  id: string;
-  sku: string | null;
-  style_code: string | null;
-  name: string;
-  fabric: string | null;
-  color: string | null;
-  size: string | null;
-  selling_price: number;
-  is_active: boolean;
-}
-
 export default function Products() {
   // 1. State
   const [products, setProducts] = useState<Product[]>([]);
@@ -62,7 +50,7 @@ export default function Products() {
       }
     };
 
-    loadProducts();
+   void  loadProducts();
   }, []);
 
   // 3. Create product
@@ -112,14 +100,21 @@ const handleEditProduct = (product: Product) => {
   return (
     <Box>
       <Stack
-        direction={{ xs: "column", sm: "row" }}
-        justifyContent="space-between"
-        alignItems={{ xs: "stretch", sm: "center" }}
-        spacing={2}
-        mb={3}
-      >
+  direction={{ xs: "column", sm: "row" }}
+  spacing={2}
+  sx={{
+    justifyContent: "space-between",
+    alignItems: {
+      xs: "stretch",
+      sm: "center",
+    },
+    mb: 3,
+  }}
+>
         <Box>
-          <Typography variant="h4" fontWeight={700}>
+          <Typography variant="h4" 
+	  //fontWeight={700}>
+	  sx={{ fontWeight: 700 }}>
             Products
           </Typography>
 
@@ -171,7 +166,7 @@ const handleEditProduct = (product: Product) => {
   <TableCell>{product.style_code || "—"}</TableCell>
 
   <TableCell>
-    <Typography fontWeight={600}>
+    <Typography sx={{ fontWeight: 600 }}>
       {product.name}
     </Typography>
   </TableCell>
@@ -202,6 +197,13 @@ const handleEditProduct = (product: Product) => {
     >
       <EditIcon fontSize="small" />
     </IconButton>
+    <IconButton
+  size="small"
+  aria-label={`Edit ${product.name}`}
+  onClick={() => handleEditProduct(product)}
+>
+  <EditIcon fontSize="small" />
+</IconButton>
   </TableCell>
 </TableRow>
                 ))

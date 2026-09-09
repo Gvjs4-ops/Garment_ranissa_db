@@ -19,7 +19,7 @@ function PlaceholderPage({ title }: { title: string }) {
 export default function AppRoutes() {
   return (
     <Routes>
-      <Route element={<MainLayout><div /></MainLayout>}>
+      <Route element={<MainLayout />}>
         <Route
           path="/"
           element={<Dashboard />}

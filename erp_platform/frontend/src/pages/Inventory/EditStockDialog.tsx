@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+
 import {
   Alert,
   Button,
@@ -9,7 +11,6 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { useEffect, useState } from "react";
 
 export interface EditableInventoryItem {
   id: string;
@@ -32,7 +33,7 @@ interface EditStockDialogProps {
   onClose: () => void;
   onSave: (
     inventoryId: string,
-    update: EditStockInput
+    update: EditStockInput,
   ) => Promise<void>;
 }
 
@@ -48,7 +49,9 @@ export default function EditStockDialog({
   onClose,
   onSave,
 }: EditStockDialogProps) {
-  const [form, setForm] = useState<EditStockInput>(initialForm);
+  const [form, setForm] =
+    useState<EditStockInput>(initialForm);
+
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -93,7 +96,7 @@ export default function EditStockDialog({
       setError(
         error instanceof Error
           ? error.message
-          : "Failed to update stock."
+          : "Failed to update stock.",
       );
     } finally {
       setSaving(false);
@@ -110,7 +113,10 @@ export default function EditStockDialog({
       <DialogTitle>Edit Stock</DialogTitle>
 
       <DialogContent>
-        <Stack spacing={2} mt={1}>
+        <Stack
+          spacing={2}
+          sx={{ mt: 1 }}
+        >
           {error && (
             <Alert severity="error">
               {error}
@@ -120,21 +126,27 @@ export default function EditStockDialog({
           {item && (
             <>
               <Stack spacing={0.5}>
-                <Typography variant="body2" color="text.secondary">
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                >
                   Product
                 </Typography>
 
-                <Typography fontWeight={600}>
+                <Typography sx={{ fontWeight: 600 }}>
                   {item.product_name}
                 </Typography>
               </Stack>
 
               <Stack spacing={0.5}>
-                <Typography variant="body2" color="text.secondary">
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                >
                   Warehouse
                 </Typography>
 
-                <Typography fontWeight={600}>
+                <Typography sx={{ fontWeight: 600 }}>
                   {item.warehouse_name}
                 </Typography>
               </Stack>
@@ -145,13 +157,17 @@ export default function EditStockDialog({
             label="Stock On Hand"
             type="number"
             value={form.quantity_on_hand}
-            onChange={(e) =>
-              setForm((prev) => ({
-                ...prev,
-                quantity_on_hand: Number(e.target.value),
+            onChange={(event) =>
+              setForm((previous) => ({
+                ...previous,
+                quantity_on_hand: Number(event.target.value),
               }))
             }
-            inputProps={{ min: 0 }}
+            slotProps={{
+              htmlInput: {
+                min: 0,
+              },
+            }}
             fullWidth
           />
 
@@ -159,23 +175,27 @@ export default function EditStockDialog({
             label="Reorder Level"
             type="number"
             value={form.reorder_level}
-            onChange={(e) =>
-              setForm((prev) => ({
-                ...prev,
-                reorder_level: Number(e.target.value),
+            onChange={(event) =>
+              setForm((previous) => ({
+                ...previous,
+                reorder_level: Number(event.target.value),
               }))
             }
-            inputProps={{ min: 0 }}
+            slotProps={{
+              htmlInput: {
+                min: 0,
+              },
+            }}
             fullWidth
           />
 
           <TextField
             label="Notes"
             value={form.notes}
-            onChange={(e) =>
-              setForm((prev) => ({
-                ...prev,
-                notes: e.target.value,
+            onChange={(event) =>
+              setForm((previous) => ({
+                ...previous,
+                notes: event.target.value,
               }))
             }
             placeholder="Example: Physical stock correction"

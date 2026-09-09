@@ -1,4 +1,5 @@
-const API_BASE_URL = "/api";
+//const API_BASE_URL = "/api";
+import { API_BASE_URL } from "../config/api";
 
 //-------------Exporting interfaces------------
 export interface Company {
@@ -34,7 +35,7 @@ export interface SalesOrder {
   status: string;
   total_amount: number;
   customer_id: string;
-  customer_name: string;
+  customer_name: string | null;
   items?: SalesOrderItem[];
 }
 
@@ -57,12 +58,6 @@ export interface SalesOrderItemCreate {
 export interface SalesOrderItemUpdate {
   quantity?: number;
   unit_price?: number;
-}
-
-
-export interface SalesOrderCreate {
-  customer_id: string;
-  order_date: string;
 }
 
 

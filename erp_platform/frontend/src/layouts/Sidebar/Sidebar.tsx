@@ -10,32 +10,30 @@ import {
   Typography,
 } from "@mui/material";
 
-import { navigation } from "../../../config/navigation";
-
-//const drawerWidth = 260;
-import { DRAWER_WIDTH } from "../../../constants/layout";
+import { navigation } from "../../config/navigation";
+import { DRAWER_WIDTH } from "../../constants/layout";
 
 export default function Sidebar() {
   return (
-      <Drawer
-  variant="permanent"
-  sx={{
-    width: DRAWER_WIDTH,
-    flexShrink: 0,
+    <Drawer
+      variant="permanent"
+      sx={{
+        width: DRAWER_WIDTH,
+        flexShrink: 0,
 
-    "& .MuiDrawer-paper": {
-      width: DRAWER_WIDTH,
-      boxSizing: "border-box",
-      top: "72px",
-      height: "calc(100% - 72px)",
-    },
-  }}
->
+        "& .MuiDrawer-paper": {
+          width: DRAWER_WIDTH,
+          boxSizing: "border-box",
+          top: "72px",
+          height: "calc(100% - 72px)",
+        },
+      }}
+    >
       <Toolbar>
         <Typography
           variant="h6"
-          fontWeight={700}
           color="primary"
+          sx={{ fontWeight: 700 }}
         >
           Ranissa ERP
         </Typography>
@@ -43,11 +41,7 @@ export default function Sidebar() {
 
       <Divider />
 
-      <Box
-        sx={{
-          overflow: "auto",
-        }}
-      >
+      <Box sx={{ overflow: "auto" }}>
         {navigation.map((group) => (
           <Box key={group.id}>
             <Typography
@@ -70,19 +64,18 @@ export default function Sidebar() {
                 return (
                   <ListItemButton
                     key={item.id}
+                    href={item.path}
                     sx={{
                       mx: 1,
-                      borderRadius: 2,
                       mb: 0.5,
+                      borderRadius: 2,
                     }}
                   >
                     <ListItemIcon>
                       <Icon />
                     </ListItemIcon>
 
-                    <ListItemText
-                      primary={item.title}
-                    />
+                    <ListItemText primary={item.title} />
                   </ListItemButton>
                 );
               })}
