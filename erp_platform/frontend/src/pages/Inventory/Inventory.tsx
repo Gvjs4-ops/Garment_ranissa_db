@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "../../config/api";
 import {
   Box,
   Card,
@@ -64,7 +65,8 @@ export default function Inventory() {
 
 const loadInventory = async () => {
   try {
-    const response = await fetch("/api/inventory");
+    const response = await fetch(`${API_BASE_URL}/inventory`);
+    //fetch("/api/inventory");
 
     if (!response.ok) {
       throw new Error(`Failed to fetch inventory: ${response.status}`);
@@ -97,7 +99,8 @@ const loadProducts = async () => {
 
 const loadWarehouses = async () => {
   try {
-    const response = await fetch("/api/inventory/warehouses");
+    const response = await fetch(`${API_BASE_URL}/inventory/warehouses`);
+    //fetch("/api/inventory/warehouses");
 
     if (!response.ok) {
       throw new Error(
@@ -157,7 +160,8 @@ useEffect(() => {
 
   const handleReceiveStock = async (
   receipt: ReceiveStockInput) => {
-  const response = await fetch("/api/inventory/receive", {
+  const response = await fetch(`${API_BASE_URL}/inventory/receive`, {
+  //fetch("/api/inventory/receive", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -194,7 +198,8 @@ const handleUpdateStock = async (
   inventoryId: string,
   update: EditStockInput
 ) => {
-  const response = await fetch(`/api/inventory/${inventoryId}`, {
+  const response = await fetch(`${API_BASE_URL}/inventory/${inventoryId}`, {
+  //fetch(`/api/inventory/${inventoryId}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
