@@ -85,11 +85,7 @@ const handleCreateOrder = async () => {
   try {
     setCreating(true);
 
-<<<<<<< HEAD
-    const newOrder = await createSalesOrder({
-=======
     const payload = {
->>>>>>> 9bef274 (Notification changes added in this commit)
       company_id: activeCompany.id,
       customer_id: selectedCustomer.id,
       order_date: orderDate,

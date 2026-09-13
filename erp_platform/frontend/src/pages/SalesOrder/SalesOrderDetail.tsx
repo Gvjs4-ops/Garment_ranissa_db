@@ -17,22 +17,6 @@ import {
   Typography,
 } from "@mui/material";
 
-<<<<<<< HEAD
-import {
-  fetchSalesOrder,
-  createSalesOrderItem,
-  deleteSalesOrderItem,
-  fetchSalesProducts,
-  updateSalesOrderItem,
-  updateSalesOrder,
-  fetchSalesCustomers,
-  type SalesOrder,
-  type SalesOrderItem,
-  type SalesProduct,
-  type SalesCustomer,
-} from "../../services/sales";
-
-=======
 import { fetchSalesOrder ,
 	createSalesOrderItem,
 	deleteSalesOrder,
@@ -75,7 +59,6 @@ type SalesOrder = {
   items: SalesOrderItem[];
 };
 
->>>>>>> 9bef274 (Notification changes added in this commit)
 export default function SalesOrderDetail() {
   const { orderId } = useParams();
   const navigate = useNavigate();

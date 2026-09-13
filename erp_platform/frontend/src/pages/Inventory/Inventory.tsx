@@ -35,15 +35,11 @@ import type {
   EditableInventoryItem,
   EditStockInput,
 } from "./EditStockDialog";
-<<<<<<< HEAD
-
-=======
 import { fetchProducts } from "../../api/products";
 import HistoryIcon from "@mui/icons-material/History";
 
 import StockMovementHistoryDialog from "./StockMovementHistoryDialog";
 import type { StockMovement } from "./StockMovementHistoryDialog";
->>>>>>> 9bef274 (Notification changes added in this commit)
 interface InventoryItem {
   id: string;
   product_id: string;
@@ -73,10 +69,6 @@ export default function Inventory() {
     useState<InventoryItem[]>([]);
 
   const [search, setSearch] = useState("");
-<<<<<<< HEAD
-  const [receiveDialogOpen, setReceiveDialogOpen] =
-    useState(false);
-=======
   const [receiveDialogOpen, setReceiveDialogOpen] = useState(false);
   const [products, setProducts] = useState<StockProduct[]>([]);
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
@@ -86,7 +78,6 @@ export default function Inventory() {
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
   const [historyProductName, setHistoryProductName] = useState("");
   const [stockMovements, setStockMovements] = useState<StockMovement[]>([]);
->>>>>>> 9bef274 (Notification changes added in this commit)
 
   const [products, setProducts] =
     useState<StockProduct[]>([]);
@@ -484,20 +475,6 @@ const handleViewHistory = async (item: InventoryItem) => {
                         )}
                       />
                     </TableCell>
-<<<<<<< HEAD
-
-                    <TableCell align="center">
-                      <IconButton
-                        size="small"
-                        aria-label={`Edit ${item.product_name} stock`}
-                        onClick={() =>
-                          handleEditStock(item)
-                        }
-                      >
-                        <EditIcon fontSize="small" />
-                      </IconButton>
-                    </TableCell>
-=======
 		    <TableCell align="center">
 		  <IconButton
 		    size="small"
@@ -513,7 +490,6 @@ const handleViewHistory = async (item: InventoryItem) => {
 	  	     <HistoryIcon fontSize="small" />
 		    </IconButton>
 		   </TableCell>
->>>>>>> 9bef274 (Notification changes added in this commit)
                   </TableRow>
                 ))
               ) : (
@@ -542,16 +518,6 @@ const handleViewHistory = async (item: InventoryItem) => {
       />
 
       <EditStockDialog
-<<<<<<< HEAD
-        open={editDialogOpen}
-        item={selectedInventoryItem}
-        onClose={() => {
-          setEditDialogOpen(false);
-          setSelectedInventoryItem(null);
-        }}
-        onSave={handleUpdateStock}
-      />
-=======
 	  open={editDialogOpen}
 	  item={selectedInventoryItem}
 	  onClose={() => {
@@ -570,7 +536,6 @@ const handleViewHistory = async (item: InventoryItem) => {
 	  setHistoryProductName("");
         }}
         />
->>>>>>> 9bef274 (Notification changes added in this commit)
     </Box>
   );
 }

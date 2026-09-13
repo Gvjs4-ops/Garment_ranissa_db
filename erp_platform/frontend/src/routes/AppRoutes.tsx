@@ -26,10 +26,8 @@ function PlaceholderPage({ title }: { title: string }) {
 
 export default function AppRoutes() {
   return (
-<<<<<<< HEAD
     <Routes>
       <Route element={<MainLayout />}>
-=======
     <Routes> 
     <Route
        path="/login"
@@ -42,7 +40,6 @@ export default function AppRoutes() {
          </ProtectedRoute>
          }
 >
->>>>>>> 9bef274 (Notification changes added in this commit)
         <Route
           path="/profile"
           element={<Profile />}

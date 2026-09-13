@@ -21,8 +21,6 @@ import NotificationsNoneOutlinedIcon from
 import LogoutOutlinedIcon from
   "@mui/icons-material/LogoutOutlined";
 
-<<<<<<< HEAD
-=======
 import SettingsOutlinedIcon from
   "@mui/icons-material/SettingsOutlined";
 
@@ -61,7 +59,6 @@ interface NotificationItem {
   unread: boolean;
 }
 
->>>>>>> 9bef274 (Notification changes added in this commit)
 export default function Topbar() {
   const TOPBAR_HEIGHT = 72;
 const {
@@ -291,10 +288,6 @@ useEffect(() => {
         >
           {/* NOTIFICATION BUTTON */}
 
-<<<<<<< HEAD
-          <IconButton aria-label="Notifications">
-            <Badge badgeContent={3} color="error">
-=======
           <IconButton
             onClick={
               handleOpenNotifications
@@ -304,13 +297,10 @@ useEffect(() => {
               badgeContent={unreadCount}
               color="error"
             >
->>>>>>> 9bef274 (Notification changes added in this commit)
               <NotificationsNoneOutlinedIcon />
             </Badge>
           </IconButton>
 
-<<<<<<< HEAD
-=======
 
           {/* NOTIFICATION MENU */}
 
@@ -482,7 +472,6 @@ useEffect(() => {
           </Menu>
 
 
->>>>>>> 9bef274 (Notification changes added in this commit)
           {/* COMPANY */}
 
           <Autocomplete
@@ -497,15 +486,12 @@ useEffect(() => {
             isOptionEqualToValue={(option, value) =>
               option.id === value.id
             }
-<<<<<<< HEAD
-=======
             isOptionEqualToValue={(
               option,
               value
             ) =>
               option.id === value.id
             }
->>>>>>> 9bef274 (Notification changes added in this commit)
             sx={{
               width: 250,
             }}
@@ -517,12 +503,8 @@ useEffect(() => {
             )}
           />
 
-<<<<<<< HEAD
-          {/* USER */}
-=======
 
           {/* USER BUTTON */}
->>>>>>> 9bef274 (Notification changes added in this commit)
 
           <Box
             onClick={
