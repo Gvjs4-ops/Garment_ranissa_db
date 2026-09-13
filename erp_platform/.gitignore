@@ -19,3 +19,6 @@ coverage/
 .pytest_cache/
 
 .DS_Store
+
+../erp_platform/erp_platform_files.txt
+../erp_platform/frontend_build.txt
