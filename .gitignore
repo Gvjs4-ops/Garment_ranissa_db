@@ -33,3 +33,11 @@ htmlcov/
 
 .codespaces
 erp_platform\Git commands for repo sync.txt
+
+# Vim swap and backup files
+.*.sw[a-z]
+*.sw[a-z]
+*~
+*.sql
+Session.vim
+.netrwhist

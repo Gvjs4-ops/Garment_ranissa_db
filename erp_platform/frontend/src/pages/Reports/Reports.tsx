@@ -13,7 +13,8 @@ import {
   Typography,
 } from "@mui/material";
 import { useEffect, useState } from "react";
-
+import { API_BASE_URL } from "../../config/api";
+import { apiFetch } from "../../api/apiClient";
 interface RecentOrder {
   id: string;
   order_number: string;
@@ -69,16 +70,9 @@ export default function Reports() {
   const loadReports = async () => {
     try {
       setLoading(true);
-
-      const response = await fetch("/api/reports/summary");
-
-      if (!response.ok) {
-        throw new Error(
-          `Failed to fetch reports: ${response.status}`
+	const data = await apiFetch<ReportsSummary>(
+	  `${API_BASE_URL}/reports/summary`
         );
-      }
-
-      const data = await response.json();
       setSummary(data);
     } catch (error) {
       console.error("Failed to load reports:", error);
@@ -135,8 +129,8 @@ export default function Reports() {
 
   return (
     <Box>
-      <Stack spacing={0.5} mb={3}>
-        <Typography variant="h4" fontWeight={700}>
+      <Stack spacing={0.5} sx={{mb:3}}>
+        <Typography variant="h4" sx={{fontWeight:700}}>
           Reports
         </Typography>
 
@@ -145,7 +139,7 @@ export default function Reports() {
         </Typography>
       </Stack>
 
-      <Grid container spacing={2} mb={3}>
+      <Grid container spacing={2} sx={{mb:3}}>
         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
           <Card>
             <CardContent>
@@ -158,8 +152,9 @@ export default function Reports() {
 
               <Typography
                 variant="h5"
-                fontWeight={700}
-                mt={1}
+	sx={{
+                fontWeight:700,
+                mt:1}}
               >
                 {loading
                   ? "..."
@@ -181,8 +176,9 @@ export default function Reports() {
 
               <Typography
                 variant="h5"
-                fontWeight={700}
-                mt={1}
+	sx={{
+                fontWeight:700,
+                mt:1}}
               >
                 {loading
                   ? "..."
@@ -204,8 +200,9 @@ export default function Reports() {
 
               <Typography
                 variant="h5"
-                fontWeight={700}
-                mt={1}
+                sx={{
+                fontWeight:700,
+                mt:1}}
               >
                 {loading
                   ? "..."
@@ -227,8 +224,9 @@ export default function Reports() {
 
               <Typography
                 variant="h5"
-                fontWeight={700}
-                mt={1}
+                sx={{
+                fontWeight:700,
+                mt:1}}
               >
                 {loading
                   ? "..."
@@ -250,8 +248,9 @@ export default function Reports() {
 
               <Typography
                 variant="h5"
-                fontWeight={700}
-                mt={1}
+                sx={{
+                fontWeight:700,
+                mt:1}}
               >
                 {loading
                   ? "..."
@@ -266,7 +265,7 @@ export default function Reports() {
         <Grid size={{ xs: 12, lg: 7 }}>
           <Card>
             <CardContent>
-              <Typography variant="h6" fontWeight={700} mb={2}>
+              <Typography variant="h6" sx={{fontWeight:700, mb:2}}>
                 Recent Orders
               </Typography>
 
@@ -296,7 +295,7 @@ export default function Reports() {
                         </TableCell>
 
                         <TableCell>
-                          {order.customer_name || "—"}
+                          {order.customer_name || "â€”"}
                         </TableCell>
 
                         <TableCell>
@@ -335,7 +334,7 @@ export default function Reports() {
         <Grid size={{ xs: 12, lg: 5 }}>
           <Card>
             <CardContent>
-              <Typography variant="h6" fontWeight={700} mb={2}>
+              <Typography variant="h6" sx={{fontWeight:700, mb:2}}>
                 Top Products
               </Typography>
 
@@ -356,7 +355,7 @@ export default function Reports() {
                         hover
                       >
                         <TableCell>
-                          <Typography fontWeight={600}>
+                          <Typography sx={{fontWeight:600}}>
                             {product.product_name}
                           </Typography>
 
@@ -400,7 +399,7 @@ export default function Reports() {
         <Grid size={{ xs: 12 }}>
           <Card>
             <CardContent>
-              <Typography variant="h6" fontWeight={700} mb={2}>
+              <Typography variant="h6" sx={{fontWeight:700, mb:2}}>
                 Low Stock Items
               </Typography>
 
@@ -428,7 +427,7 @@ export default function Reports() {
                         hover
                       >
                         <TableCell>
-                          {item.sku || "—"}
+                          {item.sku || "â€”"}
                         </TableCell>
 
                         <TableCell>

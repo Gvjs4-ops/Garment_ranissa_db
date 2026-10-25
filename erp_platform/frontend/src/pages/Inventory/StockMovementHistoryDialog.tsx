@@ -104,7 +104,7 @@ export default function StockMovementHistoryDialog({
         }}
       >
         <div>
-          <Typography variant="h6" fontWeight={700}>
+          <Typography variant="h6" sx={{fontWeight:700}}>
             Stock Movement History
           </Typography>
 
@@ -162,7 +162,7 @@ export default function StockMovementHistoryDialog({
                   </TableCell>
 
                   <TableCell>
-                    {movement.notes || "—"}
+                    {movement.notes || "â€”"}
                   </TableCell>
                 </TableRow>
               ))

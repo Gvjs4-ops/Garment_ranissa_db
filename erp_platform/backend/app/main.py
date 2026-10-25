@@ -5,9 +5,10 @@ from app.api.sales import router as sales_router
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.products import router as products_router
 from app.api.inventory import router as inventory_router
-from app.api.company import router as company_router
-from app.api.reports import router as reports_router
 from app.api.users import router as users_router
+from app.api.reports import router as reports_router
+from app.api.production import router as production_router
+from app.api.payroll import router as payroll_router
 app = FastAPI(
     title=settings.APP_NAME,
     version="1.0.0",
@@ -24,12 +25,13 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-app.include_router(sales_router)
-app.include_router(products_router)
-app.include_router(inventory_router)
-app.include_router(company_router)
-app.include_router(reports_router)
-app.include_router(users_router)
+app.include_router(sales_router, prefix="/api")
+app.include_router(products_router, prefix="/api")
+app.include_router(inventory_router, prefix="/api")
+app.include_router(users_router, prefix="/api")
+app.include_router(reports_router, prefix="/api")
+app.include_router(production_router, prefix="/api")
+app.include_router(payroll_router, prefix="/api")
 @app.get("/")
 def root():
     return {

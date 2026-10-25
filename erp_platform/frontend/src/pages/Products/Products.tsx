@@ -24,7 +24,7 @@ import IconButton from "@mui/material/IconButton";
 
 import EditProductDialog from "./EditProductDialog";
 import type { EditProductInput } from "./EditProductDialog";
-
+//import { supabase } from "../../lib/supabase"
 import {
   createProduct,
   fetchProducts,
@@ -38,7 +38,6 @@ export default function Products() {
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-
   // 2. Load products
   useEffect(() => {
     const loadProducts = async () => {
@@ -48,6 +47,8 @@ export default function Products() {
       } catch (error) {
         console.error("Failed to load products:", error);
       }
+  //    const { data } = await supabase.auth.getSession();
+//console.log(data.session?.access_token);
     };
 
    void  loadProducts();
@@ -195,13 +196,6 @@ const handleEditProduct = (product: Product) => {
       size="small"
       onClick={() => handleEditProduct(product)}
     >
-      <EditIcon fontSize="small" />
-    </IconButton>
-    <IconButton
-  size="small"
-  aria-label={`Edit ${product.name}`}
-  onClick={() => handleEditProduct(product)}
->
   <EditIcon fontSize="small" />
 </IconButton>
   </TableCell>

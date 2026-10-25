@@ -1,17 +1,9 @@
-import { BrowserRouter } from "react-router-dom";
-import { CompanyProvider } from "./contexts/CompanyContext";
+
+/* App.tsx */
 import AppRoutes from "./routes/AppRoutes";
-import { AuthProvider } from "./contexts/AuthContext";
+
 function App() {
-  return (
-    <BrowserRouter>
-      <AuthProvider>
-        <CompanyProvider>
-          <AppRoutes />
-        </CompanyProvider>
-      </AuthProvider>
-    </BrowserRouter>
-  );
+  return <AppRoutes />;
 }
 
 export default App;

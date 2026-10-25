@@ -108,8 +108,9 @@ export default function Settings() {
     <Box>
       <Typography
         variant="h4"
-        fontWeight={700}
-        mb={0.5}
+        sx={{
+        fontWeight:700,
+        mb:0.5}}
       >
         Settings
       </Typography>
@@ -117,7 +118,7 @@ export default function Settings() {
       <Typography
         variant="body2"
         color="text.secondary"
-        mb={3}
+        sx={{mb:3}}
       >
         Manage your ERP account settings.
       </Typography>
@@ -136,7 +137,7 @@ export default function Settings() {
         >
           <Typography
             variant="h6"
-            fontWeight={700}
+           sx={{ fontWeight:700}}
           >
             Account
           </Typography>
@@ -144,7 +145,7 @@ export default function Settings() {
           <Typography
             variant="body2"
             color="text.secondary"
-            mt={0.5}
+            sx={{mt:0.5}}
           >
             Your login and account information.
           </Typography>
@@ -189,7 +190,7 @@ export default function Settings() {
         >
           <Typography
             variant="h6"
-            fontWeight={700}
+           sx={{ fontWeight:700}}
           >
             Security
           </Typography>
@@ -197,7 +198,7 @@ export default function Settings() {
           <Typography
             variant="body2"
             color="text.secondary"
-            mt={0.5}
+            sx={{mt:0.5}}
           >
             Change your account password.
           </Typography>

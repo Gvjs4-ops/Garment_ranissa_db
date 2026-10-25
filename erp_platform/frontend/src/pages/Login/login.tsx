@@ -200,19 +200,20 @@ const [accessMessage, setAccessMessage] =
         >
           <Stack
             spacing={1}
-            mb={3}
+            sx={{mb:3}}
           >
             <Typography
               variant="h4"
-              fontWeight={700}
-              color="primary"
+	color="primary"	
+	sx={{ fontWeight:700}}
+              
             >
               Garment ERP
             </Typography>
 
             <Typography
               variant="h6"
-              fontWeight={600}
+           sx={{   fontWeight:600}}
             >
               Sign in
             </Typography>

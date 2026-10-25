@@ -1,12 +1,52 @@
 //const API_BASE_URL = "/api";
 import { API_BASE_URL } from "../config/api";
-
+import { apiFetch } from "../api/apiClient";
 //-------------Exporting interfaces------------
 export interface Company {
   id: string;
+  company_code: string;
   name: string;
+  legal_name: string | null;
+  trade_name: string | null;
+  business_type: string | null;
+  industry: string | null;
+  tax_id: string | null;
+  registration_number: string | null;
+  email: string | null;
+  phone: string | null;
+  website: string | null;
+  address_line_1: string | null;
+  address_line_2: string | null;
+  city: string | null;
+  state: string | null;
+  country: string | null;
+  postal_code: string | null;
+  currency_code: string | null;
+  timezone: string | null;
+  fiscal_year_start_month: number | null;
+  is_active: boolean;
 }
-
+export interface CompanyUpdatePayload {
+  display_name: string;
+  legal_name: string | null;
+  trade_name: string | null;
+  business_type: string | null;
+  industry: string | null;
+  tax_id: string | null;
+  registration_number: string | null;
+  email: string | null;
+  phone: string | null;
+  website: string | null;
+  address_line_1: string | null;
+  address_line_2: string | null;
+  city: string | null;
+  state: string | null;
+  country: string | null;
+  postal_code: string | null;
+  currency_code: string | null;
+  timezone: string | null;
+  fiscal_year_start_month: number;
+}
 export interface SalesOrderCreate {
   company_id: string;
   customer_id: string;
@@ -110,74 +150,81 @@ export interface CustomerUpdate {
 
 //----------------------Async functions-------------------
 export async function fetchCompanies(): Promise<Company[]> {
-  const response = await fetch(
-    `${API_BASE_URL}/sales/companies`
-  );
-
-  if (!response.ok) {
-    throw new Error(
-      `Failed to fetch companies: ${response.status}`
-    );
-  }
-
-  return response.json();
+  return apiFetch(`${API_BASE_URL}/sales/companies`);
 }
+//  if (!response.ok) {
+//    throw new Error(
+//      `Failed to fetch companies: ${response.status}`
+//    );
+//  }
+//
+//  return response.json();
+//}
+
+export async function updateCompany(
+  companyId: string,
+  payload: CompanyUpdatePayload
+): Promise<Company> {
+  return apiFetch(`${API_BASE_URL}/sales/companies/${companyId}`, {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
+}
+//export async function fetchSalesOrders(): Promise<SalesOrder[]> {
+//  const response = await fetch(
+//    `${API_BASE_URL}/sales/orders`
+//  );
+//
+//  if (!response.ok) {
+//    throw new Error(
+//      `Failed to fetch sales orders: ${response.status}`
+//    );
+//  }
+//
+//  return response.json();
+//}
 
 export async function fetchSalesOrders(): Promise<SalesOrder[]> {
-  const response = await fetch(
+  return apiFetch<SalesOrder[]>(
     `${API_BASE_URL}/sales/orders`
   );
-
-  if (!response.ok) {
-    throw new Error(
-      `Failed to fetch sales orders: ${response.status}`
-    );
-  }
-
-  return response.json();
 }
+
+//export async function fetchSalesOrder(
+//  orderId: string
+//): Promise<SalesOrder> {
+//  const response = await fetch(
+//    `${API_BASE_URL}/sales/orders/${orderId}`
+//  );
+//
+//  if (!response.ok) {
+//    throw new Error(
+//      `Failed to fetch sales order: ${response.status}`
+//    );
+//  }
+//
+//  return response.json();
+//}
 
 export async function fetchSalesOrder(
   orderId: string
 ): Promise<SalesOrder> {
-  const response = await fetch(
+  return apiFetch<SalesOrder>(
     `${API_BASE_URL}/sales/orders/${orderId}`
   );
-
-  if (!response.ok) {
-    throw new Error(
-      `Failed to fetch sales order: ${response.status}`
-    );
-  }
-
-  return response.json();
 }
 
 export async function createSalesOrderItem(
   orderId: string,
   payload: SalesOrderItemCreate
 ) {
-  const response = await fetch(
+  return apiFetch(
     `${API_BASE_URL}/sales/orders/${orderId}/items`,
     {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
       body: JSON.stringify(payload),
     }
   );
-
-if (!response.ok) {
-  const errorData = await response.json();
-
-  console.error("Create sales order item API error:", errorData);
-
-  throw new Error(
-    `Failed to create sales order: ${response.status}`
-  );
-}
-  return response.json();
 }
 
 export async function updateSalesOrderItem(
@@ -185,91 +232,49 @@ export async function updateSalesOrderItem(
   itemId: string,
   payload: SalesOrderItemUpdate
 ) {
-  const response = await fetch(
+  return apiFetch(
     `${API_BASE_URL}/sales/orders/${orderId}/items/${itemId}`,
     {
       method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
       body: JSON.stringify(payload),
     }
   );
-
-  if (!response.ok) {
-    throw new Error("Failed to update sales order item");
-  }
-
-  return response.json();
 }
 
 export async function updateSalesOrder(
   orderId: string,
   payload: SalesOrderUpdate
 ) {
-  const response = await fetch(
+  return apiFetch(
     `${API_BASE_URL}/sales/orders/${orderId}`,
     {
       method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
       body: JSON.stringify(payload),
     }
   );
-
-  if (!response.ok) {
-    throw new Error(
-      `Failed to update sales order: ${response.status}`
-    );
-  }
-
-  return response.json();
 }
 
 export async function deleteSalesOrder(
   orderId: string
 ) {
-  const response = await fetch(
+  return apiFetch(
     `${API_BASE_URL}/sales/orders/${orderId}`,
     {
       method: "DELETE",
     }
   );
-
-  if (!response.ok) {
-    const errorData = await response.json();
-
-    console.error(
-      "Delete sales order API error:",
-      errorData
-    );
-
-    throw new Error(
-      errorData.detail ||
-        `Failed to delete sales order: ${response.status}`
-    );
-  }
-
-  return response.json();
 }
 
 export async function deleteSalesOrderItem(
   orderId: string,
   itemId: string
 ) {
-  const response = await fetch(
+  return apiFetch(
     `${API_BASE_URL}/sales/orders/${orderId}/items/${itemId}`,
     {
       method: "DELETE",
     }
   );
-
-  if (!response.ok) {
-    throw new Error("Failed to delete sales order item");
-  }
-
-  return response.json();
 }
 
 export interface SalesOrderAvailabilityItem {
@@ -298,152 +303,75 @@ export interface SalesOrderAvailability {
 export async function fetchSalesOrderAvailability(
   orderId: string
 ): Promise<SalesOrderAvailability> {
-  const response = await fetch(
+  return apiFetch<SalesOrderAvailability>(
     `${API_BASE_URL}/sales/orders/${orderId}/availability`
   );
-
-  if (!response.ok) {
-    throw new Error(
-      `Failed to fetch sales order availability: ${response.status}`
-    );
-  }
-
-  return response.json();
 }
 
 export async function approveSalesOrder(
   orderId: string
 ) {
-  const response = await fetch(
+  return apiFetch(
     `${API_BASE_URL}/sales/orders/${orderId}/approve`,
     {
       method: "POST",
     }
   );
-
-  if (!response.ok) {
-    const errorData = await response.json();
-
-    throw new Error(
-      errorData.detail ||
-        `Failed to approve sales order: ${response.status}`
-    );
-  }
-
-  return response.json();
 }
 
 export async function fetchSalesProducts(): Promise<SalesProduct[]> {
-  const response = await fetch(
+  return apiFetch<SalesProduct[]>(
     `${API_BASE_URL}/sales/products`
   );
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch products");
-  }
-
-  return response.json();
 }
 
 export async function fetchSalesCustomers(): Promise<SalesCustomer[]> {
-  const response = await fetch(
+  return apiFetch<SalesCustomer[]>(
     `${API_BASE_URL}/sales/customers`
   );
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch customers");
-  }
-
-  return response.json();
 }
 
 export async function createSalesOrder(
   payload: SalesOrderCreate
-) {
-  const response = await fetch(
+): Promise<SalesOrder> {
+  return apiFetch<SalesOrder>(
     `${API_BASE_URL}/sales/orders`,
     {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
       body: JSON.stringify(payload),
     }
   );
-
-  if (!response.ok) {
-    const errorData = await response.json();
-
-    console.error("Create sales order API error:", errorData);
-    console.error("Payload sent:", payload);
-
-    throw new Error(
-      `Failed to create sales order: ${response.status}`
-    );
-  }
-
-  return response.json();
 }
 
 export async function fetchCustomers(): Promise<Customer[]> {
-  const response = await fetch(
+  return apiFetch<Customer[]>(
     `${API_BASE_URL}/sales/customers`
   );
-
-  if (!response.ok) {
-    throw new Error(
-      `Failed to fetch customers: ${response.status}`
-    );
-  }
-
-  return response.json();
 }
 
 export async function createCustomer(
   payload: CustomerCreate
 ): Promise<Customer> {
-  const response = await fetch(
+  return apiFetch<Customer>(
     `${API_BASE_URL}/sales/customers`,
     {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
       body: JSON.stringify(payload),
     }
   );
-
-  if (!response.ok) {
-    throw new Error(
-      `Failed to create customer: ${response.status}`
-    );
-  }
-
-  return response.json();
 }
 
 export async function updateCustomer(
   customerId: string,
   payload: CustomerUpdate
 ): Promise<Customer> {
-  const response = await fetch(
+  return apiFetch<Customer>(
     `${API_BASE_URL}/sales/customers/${customerId}`,
     {
       method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
       body: JSON.stringify(payload),
     }
   );
-
-  if (!response.ok) {
-    throw new Error(
-      `Failed to update customer: ${response.status}`
-    );
-  }
-
-  return response.json();
 }
 
 export async function deactivateCustomer(

@@ -5,7 +5,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-
+import { useAuth } from "./AuthContext";
 import {
   fetchCompanies,
   type Company,
@@ -31,6 +31,7 @@ export function CompanyProvider({
 }: {
   children: ReactNode;
 }) {
+  const { user, loadingAuth } = useAuth();
   const [companies, setCompanies] = useState<Company[]>([]);
   const [activeCompany, setActiveCompany] =
     useState<Company | null>(null);
@@ -38,31 +39,50 @@ export function CompanyProvider({
   const [loadingCompanies, setLoadingCompanies] =
     useState(true);
 
+useEffect(() => {
+  if (loadingAuth) {
+    return;
+  }
 
-  useEffect(() => {
-    async function loadCompanies() {
-      try {
-        const data = await fetchCompanies();
+  if (!user) {
+    setLoadingCompanies(false);
+    setCompanies([]);
+    setActiveCompany(null);
+    return;
+  }
 
-        setCompanies(data);
+  async function loadCompanies() {
+    try {
+      setLoadingCompanies(true);
 
-        if (data.length > 0) {
-          setActiveCompany(data[0]);
-        }
-      } catch (error) {
-        console.error(
-          "Failed to load companies:",
-          error
-        );
-      } finally {
-        setLoadingCompanies(false);
-      }
+      const data = await fetchCompanies();
+
+      setCompanies(data);
+      setActiveCompany(data.length > 0 ? data[0] : null);
+    } catch (error) {
+      console.error(
+        "Failed to load companies:",
+        error
+      );
+
+      setCompanies([]);
+      setActiveCompany(null);
+     // if (data.length > 0) {
+	//  console.log("COMPANY LOADED:", data[0]);
+	//  setActiveCompany(data[0]);
+//	}
+    } finally {
+      setLoadingCompanies(false);
     }
+  }
 
-    loadCompanies();
-  }, []);
-
-
+  loadCompanies();
+}, [loadingAuth, user]);
+//console.log("COMPANY CONTEXT:", {
+//  companies,
+//  activeCompany,
+//  loadingCompanies,
+//});
   return (
     <CompanyContext.Provider
       value={{

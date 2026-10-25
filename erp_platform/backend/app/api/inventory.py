@@ -1,14 +1,22 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from app.core.security import get_current_user, require_roles
+
+
 router = APIRouter(
     prefix="/inventory",
     tags=["Inventory"],
 )
+
+
+# -------------------------------------------------------------------
+# Request models
+# -------------------------------------------------------------------
+
 class StockReceipt(BaseModel):
     product_id: str
     warehouse_id: str
@@ -16,13 +24,26 @@ class StockReceipt(BaseModel):
     reorder_level: float = 0
     notes: str | None = None
 
+
 class InventoryUpdate(BaseModel):
     quantity_on_hand: float
     reorder_level: float | None = None
     notes: str | None = None
 
+
+# -------------------------------------------------------------------
+# Inventory
+# -------------------------------------------------------------------
+
 @router.get("")
-def get_inventory(db: Session = Depends(get_db)):
+def get_inventory(
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """
+    Any authenticated user can view inventory.
+    """
+
     query = text("""
         SELECT
             i.id,
@@ -63,15 +84,39 @@ def get_inventory(db: Session = Depends(get_db)):
             w.name
     """)
 
-    result = db.execute(query).mappings().all()
+    try:
+        result = db.execute(query).mappings().all()
 
-    return [dict(row) for row in result]
+        return [dict(row) for row in result]
+
+    except Exception as e:
+        print("Error fetching inventory:", e)
+
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to fetch inventory",
+        )
+
+
+# -------------------------------------------------------------------
+# Receive stock
+# -------------------------------------------------------------------
 
 @router.post("/receive")
 def receive_stock(
     receipt: StockReceipt,
     db: Session = Depends(get_db),
+    current_user=Depends(
+        require_roles(
+            "ADMIN",
+            "INVENTORY_MANAGER",
+        )
+    ),
 ):
+    """
+    Only ADMIN and INVENTORY_MANAGER can receive stock.
+    """
+
     if receipt.quantity <= 0:
         raise HTTPException(
             status_code=400,
@@ -151,12 +196,34 @@ def receive_stock(
 
         return dict(inventory_result)
 
-    except Exception:
+    except HTTPException:
         db.rollback()
         raise
 
+    except Exception as e:
+        db.rollback()
+
+        print("Error receiving stock:", e)
+
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to receive stock",
+        )
+
+
+# -------------------------------------------------------------------
+# Warehouses
+# -------------------------------------------------------------------
+
 @router.get("/warehouses")
-def get_warehouses(db: Session = Depends(get_db)):
+def get_warehouses(
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """
+    Any authenticated user can view active warehouses.
+    """
+
     query = text("""
         SELECT
             id,
@@ -164,20 +231,44 @@ def get_warehouses(db: Session = Depends(get_db)):
             location,
             is_active
         FROM warehouses
-        WHERE is_active = true
+        WHERE is_active = TRUE
         ORDER BY name
     """)
 
-    result = db.execute(query).mappings().all()
+    try:
+        result = db.execute(query).mappings().all()
 
-    return [dict(row) for row in result]
+        return [dict(row) for row in result]
+
+    except Exception as e:
+        print("Error fetching warehouses:", e)
+
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to fetch warehouses",
+        )
+
+
+# -------------------------------------------------------------------
+# Update inventory
+# -------------------------------------------------------------------
 
 @router.put("/{inventory_id}")
 def update_inventory_stock(
     inventory_id: str,
     update: InventoryUpdate,
     db: Session = Depends(get_db),
+    current_user=Depends(
+        require_roles(
+            "ADMIN",
+            "INVENTORY_MANAGER",
+        )
+    ),
 ):
+    """
+    Only ADMIN and INVENTORY_MANAGER can manually adjust stock.
+    """
+
     if update.quantity_on_hand < 0:
         raise HTTPException(
             status_code=400,
@@ -198,7 +289,9 @@ def update_inventory_stock(
 
         current = db.execute(
             current_query,
-            {"inventory_id": inventory_id},
+            {
+                "inventory_id": inventory_id,
+            },
         ).mappings().first()
 
         if not current:
@@ -283,54 +376,12 @@ def update_inventory_stock(
         db.rollback()
         raise
 
-    except Exception:
+    except Exception as e:
         db.rollback()
-        raise
 
-@router.get("/{inventory_id}/movements")
-def get_inventory_movements(
-    inventory_id: str,
-    db: Session = Depends(get_db),
-):
-    inventory_query = text("""
-        SELECT
-            id,
-            product_id,
-            warehouse_id
-        FROM inventory
-        WHERE id = :inventory_id
-    """)
+        print("Error updating inventory:", e)
 
-    inventory_item = db.execute(
-        inventory_query,
-        {"inventory_id": inventory_id},
-    ).mappings().first()
-
-    if not inventory_item:
         raise HTTPException(
-            status_code=404,
-            detail="Inventory record not found.",
+            status_code=500,
+            detail="Failed to update inventory",
         )
-
-    movements_query = text("""
-        SELECT
-            id,
-            transaction_type,
-            quantity,
-            notes,
-            created_at
-        FROM inventory_transactions
-        WHERE product_id = :product_id
-          AND warehouse_id = :warehouse_id
-        ORDER BY created_at DESC
-    """)
-
-    movements = db.execute(
-        movements_query,
-        {
-            "product_id": inventory_item["product_id"],
-            "warehouse_id": inventory_item["warehouse_id"],
-        },
-    ).mappings().all()
-
-    return [dict(row) for row in movements]

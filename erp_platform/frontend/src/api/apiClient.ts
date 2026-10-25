@@ -1,9 +1,8 @@
 import { supabase } from "../lib/supabase";
-
-export async function apiFetch(
+export async function apiFetch<T = unknown>(
   url: string,
   options: RequestInit = {}
-) {
+): Promise<T> {
   const {
     data: { session },
     error,
@@ -66,8 +65,8 @@ export async function apiFetch(
   }
 
   if (response.status === 204) {
-    return null;
+	  return null as T;
   }
 
-  return response.json();
+  return response.json() as Promise<T>;
 }

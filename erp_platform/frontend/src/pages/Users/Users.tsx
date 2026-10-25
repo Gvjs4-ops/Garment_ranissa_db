@@ -61,7 +61,6 @@ const { user: currentUser } = useAuth();
       setError("");
 
       const data = await fetchUsers();
-
       setUsers(data);
     } catch (err) {
       console.error(
@@ -99,7 +98,7 @@ const { user: currentUser } = useAuth();
         <Box>
           <Typography
             variant="h4"
-            fontWeight={700}
+            sx={{fontWeight:700}}
           >
             User Management
           </Typography>
@@ -107,7 +106,7 @@ const { user: currentUser } = useAuth();
           <Typography
             variant="body2"
             color="text.secondary"
-            mt={0.5}
+            sx={{mt:0.5}}
           >
             Manage ERP users, roles and access.
           </Typography>
@@ -221,7 +220,7 @@ users.map((user) => {
         >
           <Typography
             variant="body2"
-            fontWeight={600}
+            sx={{fontWeight:600}}
           >
             {user.full_name || "—"}
           </Typography>

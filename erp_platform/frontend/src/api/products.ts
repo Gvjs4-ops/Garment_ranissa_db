@@ -1,4 +1,4 @@
-const API_BASE_URL = "/api";
+import { apiFetch } from "./apiClient";
 
 export interface Product {
   id: string;
@@ -20,14 +20,9 @@ export interface Product {
 }
 
 export async function fetchProducts(): Promise<Product[]> {
-  const response = await fetch(`${API_BASE_URL}/products`);
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch products: ${response.status}`);
-  }
-
-  return response.json();
+  return apiFetch("/api/products");
 }
+
 export interface CreateProductPayload {
   sku: string;
   style_code: string;
@@ -45,36 +40,18 @@ export interface CreateProductPayload {
 export async function createProduct(
   product: CreateProductPayload
 ): Promise<Product> {
-  const response = await fetch(`${API_BASE_URL}/products`, {
+  return apiFetch("/api/products", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
     body: JSON.stringify(product),
   });
-
-  if (!response.ok) {
-    throw new Error(`Failed to create product: ${response.status}`);
-  }
-
-  return response.json();
 }
 
 export async function updateProduct(
   productId: string,
   product: CreateProductPayload
 ): Promise<Product> {
-  const response = await fetch(`${API_BASE_URL}/products/${productId}`, {
+  return apiFetch(`/api/products/${productId}`, {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
     body: JSON.stringify(product),
   });
-
-  if (!response.ok) {
-    throw new Error(`Failed to create product: ${response.status}`);
-  }
-
-  return response.json();
 }

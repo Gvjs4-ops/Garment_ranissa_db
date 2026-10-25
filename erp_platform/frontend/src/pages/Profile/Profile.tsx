@@ -33,8 +33,9 @@ export default function Profile() {
     <Box>
       <Typography
         variant="h4"
-        fontWeight={700}
-        mb={0.5}
+        sx={{
+        fontWeight:700,
+        mb:0.5}}
       >
         My Profile
       </Typography>
@@ -42,7 +43,7 @@ export default function Profile() {
       <Typography
         variant="body2"
         color="text.secondary"
-        mb={3}
+       sx={{ mb:3}}
       >
         View your ERP account information.
       </Typography>
@@ -62,8 +63,9 @@ export default function Profile() {
           <Stack
             direction="row"
             spacing={2}
-            alignItems="center"
-            mb={3}
+	sx={{
+            alignItems:"center",
+            mb:3}}
           >
             <Avatar
               sx={{
@@ -80,7 +82,7 @@ export default function Profile() {
             <Box>
               <Typography
                 variant="h6"
-                fontWeight={700}
+                sx={{fontWeight:700}}
               >
                 {displayName}
               </Typography>

@@ -1,10 +1,14 @@
+from uuid import UUID
+
+import httpx
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.core.database import get_db
-from app.core.auth import require_admin, supabase_admin
+from app.core.security import get_current_user, require_roles
 
 
 router = APIRouter(
@@ -13,7 +17,7 @@ router = APIRouter(
 )
 
 
-ALLOWED_ROLES = {
+USER_ROLES = {
     "ADMIN",
     "SALES_MANAGER",
     "SALES_EXECUTIVE",
@@ -24,470 +28,624 @@ ALLOWED_ROLES = {
 }
 
 
-class CreateUserPayload(BaseModel):
-    full_name: str
+class CreateUserRequest(BaseModel):
+    full_name: str = Field(min_length=1)
     email: EmailStr
-    password: str
+    password: str = Field(min_length=6)
     role: str
-    company_id: str
+    company_id: UUID
 
 
-class UpdateUserPayload(BaseModel):
-    full_name: str
+class UpdateUserRequest(BaseModel):
+    full_name: str = Field(min_length=1)
     email: EmailStr
     role: str
     is_active: bool
 
 
+def validate_role(role: str):
+    if role not in USER_ROLES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid user role: {role}",
+        )
+
+
+def supabase_headers():
+    return {
+        "apikey": settings.SUPABASE_SECRET_KEY,
+        "Authorization": f"Bearer {settings.SUPABASE_SECRET_KEY}",
+        "Content-Type": "application/json",
+    }
+
+
+# -------------------------------------------------------------------
+# Current logged-in user
+# -------------------------------------------------------------------
+
+@router.get("/me")
+def get_my_user(
+    current_user=Depends(get_current_user),
+):
+    """
+    Return the currently authenticated ERP user.
+    Any authenticated company member can access this endpoint.
+    """
+    return current_user
+
+
+# -------------------------------------------------------------------
+# List users
+# ADMIN only
+# -------------------------------------------------------------------
+
 @router.get("")
 def get_users(
     db: Session = Depends(get_db),
-    admin=Depends(require_admin),
+    current_user=Depends(require_roles("ADMIN")),
 ):
-    query = text("""
-        SELECT
-            cu.id,
-            cu.user_id,
-            au.email,
-            au.raw_user_meta_data,
-            cu.company_id,
-            c.display_name AS company_name,
-            cu.role,
-            cu.is_active,
-            cu.joined_at
-        FROM company_users cu
-        LEFT JOIN auth.users au
-            ON au.id = cu.user_id
-        LEFT JOIN companies c
-            ON c.id = cu.company_id
-        ORDER BY cu.joined_at DESC
-    """)
+    """
+    Return users belonging to the current user's company.
 
-    rows = db.execute(query).mappings().all()
+    ADMIN only.
+    """
 
-    users = []
+    try:
+        query = text("""
+            SELECT
+                cu.id,
+                cu.user_id,
+                p.full_name,
+                au.email,
+                cu.company_id,
+                c.display_name AS company_name,
+                cu.role,
+                cu.is_active,
+                cu.joined_at
+            FROM company_users cu
+            JOIN profiles p
+                ON p.id = cu.user_id
+            JOIN companies c
+                ON c.id = cu.company_id
+            LEFT JOIN auth.users au
+                ON au.id = cu.user_id
+            WHERE cu.company_id = :company_id
+            ORDER BY cu.joined_at DESC
+        """)
 
-    for row in rows:
-        user = dict(row)
+        rows = db.execute(
+            query,
+            {
+                "company_id": current_user["company_id"],
+            },
+        ).mappings().all()
 
-        metadata = (
-            user.pop(
-                "raw_user_meta_data",
-                None,
-            )
-            or {}
+        return [dict(row) for row in rows]
+
+    except Exception as e:
+        print("Error fetching users:", e)
+
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to fetch users",
         )
 
-        user["full_name"] = (
-            metadata.get("full_name", "")
-        )
 
-        users.append(user)
-
-    return users
-
+# -------------------------------------------------------------------
+# Create user
+# ADMIN only
+# -------------------------------------------------------------------
 
 @router.post("")
 def create_user(
-    payload: CreateUserPayload,
+    payload: CreateUserRequest,
     db: Session = Depends(get_db),
-    admin=Depends(require_admin),
+    current_user=Depends(require_roles("ADMIN")),
 ):
-    if payload.role not in ALLOWED_ROLES:
+    """
+    Create a Supabase Auth user and attach the user to
+    the ADMIN's company.
+
+    ADMIN only.
+    """
+
+    validate_role(payload.role)
+
+    # ---------------------------------------------------------------
+    # SECURITY:
+    # An ADMIN cannot create a user in another company.
+    # ---------------------------------------------------------------
+
+    if str(payload.company_id) != str(current_user["company_id"]):
         raise HTTPException(
-            status_code=400,
-            detail="Invalid role",
+            status_code=403,
+            detail="You cannot create users for another company",
         )
 
-    full_name = payload.full_name.strip()
+    # Verify company exists and is active.
+    company = db.execute(
+        text("""
+            SELECT id
+            FROM companies
+            WHERE id = :company_id
+              AND is_active = TRUE
+        """),
+        {
+            "company_id": payload.company_id,
+        },
+    ).first()
 
-    if not full_name:
+    if not company:
         raise HTTPException(
             status_code=400,
-            detail="Full name is required",
+            detail="Invalid or inactive company",
         )
 
-    if len(payload.password) < 6:
+    # Prevent duplicate ERP membership.
+    existing_email = db.execute(
+        text("""
+            SELECT au.id
+            FROM auth.users au
+            JOIN company_users cu
+                ON cu.user_id = au.id
+            WHERE lower(au.email) = lower(:email)
+              AND cu.company_id = :company_id
+            LIMIT 1
+        """),
+        {
+            "email": payload.email,
+            "company_id": payload.company_id,
+        },
+    ).first()
+
+    if existing_email:
         raise HTTPException(
-            status_code=400,
-            detail=(
-                "Password must be at least "
-                "6 characters"
-            ),
+            status_code=409,
+            detail="User already exists in this company",
         )
 
-    auth_user = None
+    auth_user_id = None
 
     try:
-        auth_response = (
-            supabase_admin.auth.admin.create_user(
-                {
-                    "email": str(payload.email),
-                    "password": payload.password,
-                    "email_confirm": True,
-                    "user_metadata": {
-                        "full_name": full_name,
-                    },
-                }
-            )
+        # -----------------------------------------------------------
+        # Create Supabase Auth user.
+        # This uses the backend-only secret key.
+        # -----------------------------------------------------------
+
+        response = httpx.post(
+            f"{settings.SUPABASE_URL}/auth/v1/admin/users",
+            headers=supabase_headers(),
+            json={
+                "email": payload.email,
+                "password": payload.password,
+                "email_confirm": True,
+                "user_metadata": {
+                    "full_name": payload.full_name,
+                },
+            },
+            timeout=15,
         )
 
-        auth_user = auth_response.user
+        if response.status_code >= 400:
+            try:
+                error_data = response.json()
 
-        if not auth_user:
+                detail = (
+                    error_data.get("msg")
+                    or error_data.get("message")
+                    or error_data.get("error_description")
+                    or "Failed to create authentication user"
+                )
+
+            except Exception:
+                detail = "Failed to create authentication user"
+
+            raise HTTPException(
+                status_code=400,
+                detail=detail,
+            )
+
+        auth_user = response.json()
+        auth_user_id = auth_user.get("id")
+
+        if not auth_user_id:
             raise HTTPException(
                 status_code=500,
-                detail="Failed to create auth user",
+                detail="Supabase did not return a user ID",
             )
 
-        query = text("""
-            INSERT INTO company_users (
-                company_id,
-                user_id,
-                role,
-                is_active
-            )
-            VALUES (
-                :company_id,
-                :user_id,
-                :role,
-                true
-            )
-            RETURNING
-                id,
-                company_id,
-                user_id,
-                role,
-                is_active,
-                joined_at
-        """)
+        # -----------------------------------------------------------
+        # Create ERP profile.
+        # -----------------------------------------------------------
 
-        result = db.execute(
-            query,
+        db.execute(
+            text("""
+                INSERT INTO profiles (
+                    id,
+                    full_name,
+                    is_active
+                )
+                VALUES (
+                    :user_id,
+                    :full_name,
+                    TRUE
+                )
+            """),
+            {
+                "user_id": auth_user_id,
+                "full_name": payload.full_name,
+            },
+        )
+
+        # -----------------------------------------------------------
+        # Create company membership.
+        # -----------------------------------------------------------
+
+        db.execute(
+            text("""
+                INSERT INTO company_users (
+                    company_id,
+                    user_id,
+                    role,
+                    is_active
+                )
+                VALUES (
+                    :company_id,
+                    :user_id,
+                    :role,
+                    TRUE
+                )
+            """),
             {
                 "company_id": payload.company_id,
-                "user_id": str(auth_user.id),
+                "user_id": auth_user_id,
                 "role": payload.role,
             },
-        ).mappings().first()
+        )
 
         db.commit()
 
-        company_query = text("""
-            SELECT display_name
-            FROM companies
-            WHERE id = :company_id
-        """)
+        # -----------------------------------------------------------
+        # Return created ERP user.
+        # -----------------------------------------------------------
 
-        company_name = db.execute(
-            company_query,
+        row = db.execute(
+            text("""
+                SELECT
+                    cu.id,
+                    cu.user_id,
+                    p.full_name,
+                    au.email,
+                    cu.company_id,
+                    c.display_name AS company_name,
+                    cu.role,
+                    cu.is_active,
+                    cu.joined_at
+                FROM company_users cu
+                JOIN profiles p
+                    ON p.id = cu.user_id
+                JOIN companies c
+                    ON c.id = cu.company_id
+                LEFT JOIN auth.users au
+                    ON au.id = cu.user_id
+                WHERE cu.user_id = :user_id
+                  AND cu.company_id = :company_id
+                LIMIT 1
+            """),
             {
+                "user_id": auth_user_id,
                 "company_id": payload.company_id,
             },
-        ).scalar()
+        ).mappings().one()
 
-        return {
-            **dict(result),
-            "email": str(payload.email),
-            "full_name": full_name,
-            "company_name": company_name,
-        }
+        return dict(row)
 
     except HTTPException:
         db.rollback()
-        raise
 
-    except Exception as error:
-        db.rollback()
-
-        # Remove orphan Auth user if company
-        # membership creation failed.
-        if auth_user:
+        if auth_user_id:
             try:
-                supabase_admin.auth.admin.delete_user(
-                    str(auth_user.id)
+                httpx.delete(
+                    f"{settings.SUPABASE_URL}/auth/v1/admin/users/{auth_user_id}",
+                    headers=supabase_headers(),
+                    timeout=15,
                 )
             except Exception as cleanup_error:
                 print(
-                    "Failed to clean up auth user:",
+                    "Failed to cleanup Supabase Auth user:",
                     cleanup_error,
                 )
 
-        print(
-            "Create user error:",
-            error,
-        )
+        raise
 
-        error_message = str(error)
+    except Exception as e:
+        db.rollback()
 
-        if (
-            "already" in error_message.lower()
-            and "registered" in error_message.lower()
-        ):
-            raise HTTPException(
-                status_code=400,
-                detail=(
-                    "A user with this email "
-                    "already exists"
-                ),
-            )
+        print("Error creating user:", e)
+
+        # If DB creation failed after Auth creation,
+        # remove the Auth user so we don't leave an orphan.
+        if auth_user_id:
+            try:
+                httpx.delete(
+                    f"{settings.SUPABASE_URL}/auth/v1/admin/users/{auth_user_id}",
+                    headers=supabase_headers(),
+                    timeout=15,
+                )
+            except Exception as cleanup_error:
+                print(
+                    "Failed to cleanup Supabase Auth user:",
+                    cleanup_error,
+                )
 
         raise HTTPException(
             status_code=500,
-            detail=error_message,
+            detail="Failed to create user",
         )
 
+
+# -------------------------------------------------------------------
+# Update user
+# ADMIN only
+# -------------------------------------------------------------------
 
 @router.put("/{company_user_id}")
 def update_user(
-    company_user_id: str,
-    payload: UpdateUserPayload,
+    company_user_id: UUID,
+    payload: UpdateUserRequest,
     db: Session = Depends(get_db),
-    admin=Depends(require_admin),
+    current_user=Depends(require_roles("ADMIN")),
 ):
-    if payload.role not in ALLOWED_ROLES:
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid role",
-        )
+    """
+    Update an existing company user.
 
-    full_name = payload.full_name.strip()
+    ADMIN only.
+    """
 
-    if not full_name:
-        raise HTTPException(
-            status_code=400,
-            detail="Full name is required",
-        )
+    validate_role(payload.role)
 
-    # Find the company membership.
-    membership_query = text("""
-        SELECT
-            cu.id,
-            cu.user_id,
-            cu.company_id
-        FROM company_users cu
-        WHERE cu.id = :company_user_id
-        LIMIT 1
-    """)
+    # ---------------------------------------------------------------
+    # Find membership and enforce company isolation.
+    # ---------------------------------------------------------------
 
     membership = db.execute(
-        membership_query,
+        text("""
+            SELECT
+                cu.id,
+                cu.user_id,
+                cu.company_id
+            FROM company_users cu
+            WHERE cu.id = :company_user_id
+              AND cu.company_id = :company_id
+            LIMIT 1
+        """),
         {
             "company_user_id": company_user_id,
+            "company_id": current_user["company_id"],
         },
     ).mappings().first()
 
     if not membership:
         raise HTTPException(
             status_code=404,
-            detail="User access record not found",
+            detail="User not found in your company",
         )
 
-    # Check whether the administrator is
-    # editing their own account.
-    is_current_user = (
-        str(membership["user_id"])
-        == str(admin["user_id"])
-    )
-
-    # Protect administrator from accidentally
-    # removing their own administrator access.
-    if is_current_user:
-        if payload.role != "ADMIN":
-            raise HTTPException(
-                status_code=400,
-                detail=(
-                    "You cannot remove your own "
-                    "Administrator role."
-                ),
-            )
-
-        if not payload.is_active:
-            raise HTTPException(
-                status_code=400,
-                detail=(
-                    "You cannot deactivate your "
-                    "own account."
-                ),
-            )
-
-    user_id = str(
-        membership["user_id"]
-    )
+    user_id = membership["user_id"]
 
     try:
-        # Update email and full name in
-        # Supabase Auth.
-        supabase_admin.auth.admin.update_user_by_id(
-            user_id,
+        # -----------------------------------------------------------
+        # Update ERP profile.
+        # -----------------------------------------------------------
+
+        db.execute(
+            text("""
+                UPDATE profiles
+                SET
+                    full_name = :full_name,
+                    is_active = :is_active
+                WHERE id = :user_id
+            """),
             {
-                "email": str(payload.email),
-                "email_confirm": True,
-                "user_metadata": {
-                    "full_name": full_name,
-                },
+                "full_name": payload.full_name,
+                "is_active": payload.is_active,
+                "user_id": user_id,
             },
         )
 
-        # Update ERP role and status.
-        update_query = text("""
-            UPDATE company_users
-            SET
-                role = :role,
-                is_active = :is_active
-            WHERE id = :company_user_id
-            RETURNING
-                id,
-                user_id,
-                company_id,
-                role,
-                is_active,
-                joined_at
-        """)
+        # -----------------------------------------------------------
+        # Update company membership.
+        # -----------------------------------------------------------
 
-        result = db.execute(
-            update_query,
+        db.execute(
+            text("""
+                UPDATE company_users
+                SET
+                    role = :role,
+                    is_active = :is_active
+                WHERE id = :company_user_id
+                  AND company_id = :company_id
+            """),
             {
-                "company_user_id": company_user_id,
                 "role": payload.role,
                 "is_active": payload.is_active,
+                "company_user_id": company_user_id,
+                "company_id": current_user["company_id"],
             },
-        ).mappings().first()
+        )
 
-        if not result:
+        # -----------------------------------------------------------
+        # Update Supabase Auth email.
+        # -----------------------------------------------------------
+
+        response = httpx.put(
+            f"{settings.SUPABASE_URL}/auth/v1/admin/users/{user_id}",
+            headers=supabase_headers(),
+            json={
+                "email": payload.email,
+            },
+            timeout=15,
+        )
+
+        if response.status_code >= 400:
+            try:
+                error_data = response.json()
+
+                detail = (
+                    error_data.get("msg")
+                    or error_data.get("message")
+                    or error_data.get("error_description")
+                    or "Failed to update authentication user"
+                )
+
+            except Exception:
+                detail = "Failed to update authentication user"
+
+            db.rollback()
+
             raise HTTPException(
-                status_code=404,
-                detail="User access record not found",
+                status_code=400,
+                detail=detail,
             )
 
         db.commit()
 
-        company_query = text("""
-            SELECT display_name
-            FROM companies
-            WHERE id = :company_id
-        """)
+        # -----------------------------------------------------------
+        # Return updated user.
+        # -----------------------------------------------------------
 
-        company_name = db.execute(
-            company_query,
+        row = db.execute(
+            text("""
+                SELECT
+                    cu.id,
+                    cu.user_id,
+                    p.full_name,
+                    au.email,
+                    cu.company_id,
+                    c.display_name AS company_name,
+                    cu.role,
+                    cu.is_active,
+                    cu.joined_at
+                FROM company_users cu
+                JOIN profiles p
+                    ON p.id = cu.user_id
+                JOIN companies c
+                    ON c.id = cu.company_id
+                LEFT JOIN auth.users au
+                    ON au.id = cu.user_id
+                WHERE cu.id = :company_user_id
+                  AND cu.company_id = :company_id
+                LIMIT 1
+            """),
             {
-                "company_id": result["company_id"],
+                "company_user_id": company_user_id,
+                "company_id": current_user["company_id"],
             },
-        ).scalar()
+        ).mappings().one()
 
-        return {
-            **dict(result),
-            "email": str(payload.email),
-            "full_name": full_name,
-            "company_name": company_name,
-        }
+        return dict(row)
 
     except HTTPException:
-        db.rollback()
         raise
 
-    except Exception as error:
+    except Exception as e:
         db.rollback()
 
-        print(
-            "Update user error:",
-            error,
-        )
-
-        error_message = str(error)
-
-        if (
-            "already" in error_message.lower()
-            or "duplicate" in error_message.lower()
-        ):
-            raise HTTPException(
-                status_code=400,
-                detail=(
-                    "That email address is already "
-                    "being used by another user"
-                ),
-            )
+        print("Error updating user:", e)
 
         raise HTTPException(
             status_code=500,
-            detail=error_message,
+            detail="Failed to update user",
         )
 
 
+# -------------------------------------------------------------------
+# Delete / deactivate user
+# ADMIN only
+# -------------------------------------------------------------------
+
 @router.delete("/{company_user_id}")
-def remove_user_access(
-    company_user_id: str,
+def delete_user(
+    company_user_id: UUID,
     db: Session = Depends(get_db),
-    admin=Depends(require_admin),
+    current_user=Depends(require_roles("ADMIN")),
 ):
-    # Find membership before deactivating it.
-    membership_query = text("""
-        SELECT
-            id,
-            user_id,
-            role,
-            is_active
-        FROM company_users
-        WHERE id = :company_user_id
-        LIMIT 1
-    """)
+    """
+    Deactivate an ERP user and their company membership.
+
+    The Supabase Auth account is intentionally NOT deleted here.
+    This preserves historical ERP records.
+    """
 
     membership = db.execute(
-        membership_query,
+        text("""
+            SELECT
+                cu.id,
+                cu.user_id,
+                cu.company_id,
+                cu.role
+            FROM company_users cu
+            WHERE cu.id = :company_user_id
+              AND cu.company_id = :company_id
+            LIMIT 1
+        """),
         {
             "company_user_id": company_user_id,
+            "company_id": current_user["company_id"],
         },
     ).mappings().first()
 
     if not membership:
         raise HTTPException(
             status_code=404,
-            detail="User access record not found",
+            detail="User not found in your company",
         )
 
-    # Prevent administrator from removing
-    # their own access.
-    if (
-        str(membership["user_id"])
-        == str(admin["user_id"])
-    ):
+    # Prevent ADMIN from accidentally removing their own access.
+    if str(membership["user_id"]) == str(current_user["id"]):
         raise HTTPException(
             status_code=400,
-            detail=(
-                "You cannot remove access "
-                "from your own account."
-            ),
+            detail="You cannot deactivate your own account",
         )
 
-    # Soft deactivate company access.
-    query = text("""
-        UPDATE company_users
-        SET is_active = false
-        WHERE id = :company_user_id
-        RETURNING
-            id,
-            user_id,
-            company_id,
-            role,
-            is_active
-    """)
+    try:
+        db.execute(
+            text("""
+                UPDATE company_users
+                SET is_active = FALSE
+                WHERE id = :company_user_id
+                  AND company_id = :company_id
+            """),
+            {
+                "company_user_id": company_user_id,
+                "company_id": current_user["company_id"],
+            },
+        )
 
-    result = db.execute(
-        query,
-        {
-            "company_user_id": company_user_id,
-        },
-    ).mappings().first()
+        db.execute(
+            text("""
+                UPDATE profiles
+                SET is_active = FALSE
+                WHERE id = :user_id
+            """),
+            {
+                "user_id": membership["user_id"],
+            },
+        )
 
-    if not result:
+        db.commit()
+
+        return {
+            "message": "User deactivated successfully",
+            "company_user_id": str(company_user_id),
+        }
+
+    except Exception as e:
+        db.rollback()
+
+        print("Error deactivating user:", e)
+
         raise HTTPException(
-            status_code=404,
-            detail="User access record not found",
+            status_code=500,
+            detail="Failed to deactivate user",
         )
-
-    db.commit()
-
-    return {
-        "message": "User access removed",
-        "user": dict(result),
-    }

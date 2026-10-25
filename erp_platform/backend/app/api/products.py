@@ -5,12 +5,18 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.core.security import get_current_user, require_roles
+
 
 router = APIRouter(
     prefix="/products",
     tags=["Products"],
 )
 
+
+# -------------------------------------------------------------------
+# Request models
+# -------------------------------------------------------------------
 
 class ProductCreate(BaseModel):
     sku: str
@@ -26,8 +32,22 @@ class ProductCreate(BaseModel):
     is_active: bool = True
 
 
+# -------------------------------------------------------------------
+# Products
+# -------------------------------------------------------------------
+
 @router.get("")
-def get_products(db: Session = Depends(get_db)):
+def get_products(
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """
+    Any authenticated user can view products.
+
+    Products are currently global because the products table
+    does not have a company_id column.
+    """
+
     query = text("""
         SELECT
             p.id,
@@ -50,16 +70,35 @@ def get_products(db: Session = Depends(get_db)):
         ORDER BY p.created_at DESC
     """)
 
-    result = db.execute(query).mappings().all()
+    try:
+        result = db.execute(query).mappings().all()
 
-    return [dict(row) for row in result]
+        return [dict(row) for row in result]
+
+    except Exception as e:
+        print("Error fetching products:", e)
+
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to fetch products",
+        )
 
 
 @router.post("")
 def create_product(
     product: ProductCreate,
     db: Session = Depends(get_db),
+    current_user=Depends(
+        require_roles(
+            "ADMIN",
+            "INVENTORY_MANAGER",
+        )
+    ),
 ):
+    """
+    Only ADMIN and INVENTORY_MANAGER can create products.
+    """
+
     query = text("""
         INSERT INTO products (
             sku,
@@ -138,12 +177,33 @@ def create_product(
             detail="A product with this SKU already exists.",
         )
 
+    except Exception as e:
+        db.rollback()
+
+        print("Error creating product:", e)
+
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to create product",
+        )
+
+
 @router.put("/{product_id}")
 def update_product(
     product_id: str,
     product: ProductCreate,
     db: Session = Depends(get_db),
+    current_user=Depends(
+        require_roles(
+            "ADMIN",
+            "INVENTORY_MANAGER",
+        )
+    ),
 ):
+    """
+    Only ADMIN and INVENTORY_MANAGER can update products.
+    """
+
     query = text("""
         UPDATE products
         SET
@@ -202,6 +262,7 @@ def update_product(
 
         if updated_product is None:
             db.rollback()
+
             raise HTTPException(
                 status_code=404,
                 detail="Product not found.",
@@ -211,10 +272,23 @@ def update_product(
 
         return dict(updated_product)
 
+    except HTTPException:
+        raise
+
     except IntegrityError:
         db.rollback()
 
         raise HTTPException(
             status_code=400,
             detail="A product with this SKU already exists.",
+        )
+
+    except Exception as e:
+        db.rollback()
+
+        print("Error updating product:", e)
+
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to update product",
         )

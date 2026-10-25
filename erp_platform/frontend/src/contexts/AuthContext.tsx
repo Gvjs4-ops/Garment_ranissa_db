@@ -1,3 +1,4 @@
+
 import {
   createContext,
   useContext,
@@ -7,7 +8,6 @@ import {
 } from "react";
 
 import type { User } from "@supabase/supabase-js";
-
 import { supabase } from "../lib/supabase";
 
 type AuthContextValue = {
@@ -16,77 +16,68 @@ type AuthContextValue = {
   companyId: string | null;
   loadingAuth: boolean;
   accessError: string | null;
+  isPlatformAdmin: boolean;
 };
 
 const AuthContext =
-  createContext<AuthContextValue | undefined>(
-    undefined
-  );
+  createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({
   children,
 }: {
   children: ReactNode;
 }) {
-  const [user, setUser] =
-    useState<User | null>(null);
-
-  const [role, setRole] =
-    useState<string | null>(null);
-
-  const [companyId, setCompanyId] =
-    useState<string | null>(null);
-
-  const [loadingAuth, setLoadingAuth] =
-    useState(true);
-
-  const [accessError, setAccessError] =
-    useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [role, setRole] = useState<string | null>(null);
+  const [companyId, setCompanyId] = useState<string | null>(null);
+  const [loadingAuth, setLoadingAuth] = useState(true);
+  const [accessError, setAccessError] = useState<string | null>(null);
+  const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
 
   const clearAccess = () => {
     setUser(null);
     setRole(null);
     setCompanyId(null);
+    setIsPlatformAdmin(false);
+    setAccessError(null);
   };
 
-  const loadUserAccess = async (
-    authUser: User
+  const checkPlatformAdmin = async (
+    userId: string,
   ): Promise<boolean> => {
-    const {
-      data,
-      error,
-    } = await supabase
-      .from("company_users")
-      .select(
-        `
-          company_id,
-          role,
-          is_active
-        `
-      )
-      .eq(
-        "user_id",
-        authUser.id
-      )
-      .eq(
-        "is_active",
-        true
-      )
+    const { data, error } = await supabase
+      .from("platform_admins")
+      .select("user_id")
+      .eq("user_id", userId)
       .maybeSingle();
 
     if (error) {
       console.error(
-        "Failed to load user access:",
-        error
+        "Unable to verify platform admin:",
+        error.message,
       );
+      return false;
+    }
 
+    return Boolean(data);
+  };
+
+  const loadUserAccess = async (
+    authUser: User,
+    platformAdmin: boolean,
+  ): Promise<boolean> => {
+    const { data, error } = await supabase
+      .from("company_users")
+      .select("company_id, role, is_active")
+      .eq("user_id", authUser.id)
+      .eq("is_active", true)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Failed to load user access:", error);
       setRole(null);
       setCompanyId(null);
-
-      setAccessError(
-        "Unable to verify your ERP access."
-      );
-
+      setAccessError("Unable to verify your ERP access.");
       return false;
     }
 
@@ -94,10 +85,14 @@ export function AuthProvider({
       setRole(null);
       setCompanyId(null);
 
-      setAccessError(
-        "Your ERP access is inactive. Contact your administrator."
-      );
+      if (platformAdmin) {
+        setAccessError(null);
+        return true;
+      }
 
+      setAccessError(
+        "Your ERP access is inactive. Contact your administrator.",
+      );
       return false;
     }
 
@@ -108,143 +103,111 @@ export function AuthProvider({
     return true;
   };
 
+  const denyAccess = async () => {
+    clearAccess();
 
+    await supabase.auth.signOut({ scope: "local" });
 
-    /*
-      Sign out only this browser session.
-
-      The Supabase Auth account still exists.
-      The administrator can reactivate the
-      company_users membership later.
-    */
-const denyAccess = async () => {
-  clearAccess();
-
-  await supabase.auth.signOut({
-    scope: "local",
-  });
-
-  window.location.href =
-    "/login?reason=inactive";
-};
+    window.location.href = "/login?reason=inactive";
+  };
 
   useEffect(() => {
     let mounted = true;
 
-    const initializeAuth =
-      async () => {
-        try {
-	const {
-	  data: { session },
-	} =
-	  await supabase.auth.getSession();
-	
-	if (!session) {
-	  clearAccess();
-	  return;
-	}
-          const {
-            data: {
-              user: authUser,
-            },
-            error,
-          } =
-            await supabase.auth.getUser();
+    const processUser = async (authUser: User) => {
+      setLoadingAuth(true);
+      setUser(authUser);
 
-          if (!mounted) {
-            return;
-          }
+      const platformAdmin = await checkPlatformAdmin(authUser.id);
 
-          if (error) {
-            console.error(
-              "Failed to get authenticated user:",
-              error
-            );
+      if (!mounted) return;
 
-            clearAccess();
-            return;
-          }
+      setIsPlatformAdmin(platformAdmin);
 
-          if (!authUser) {
-            clearAccess();
-            return;
-          }
+      const hasAccess = await loadUserAccess(
+        authUser,
+        platformAdmin,
+      );
 
-          setUser(authUser);
+      if (!mounted) return;
 
-          const hasAccess =
-            await loadUserAccess(
-              authUser
-            );
+      if (!hasAccess) {
+        await denyAccess();
+        return;
+      }
 
-          if (
-            mounted &&
-            !hasAccess
-          ) {
-            await denyAccess();
-          }
-        } catch (error) {
-          console.error(
-            "Failed to initialize auth:",
-            error
-          );
+      setLoadingAuth(false);
+    };
 
-          if (mounted) {
-            clearAccess();
-          }
-        } finally {
-          if (mounted) {
-            setLoadingAuth(false);
-          }
+    const initializeAuth = async () => {
+      try {
+        const {
+          data: { session },
+          error: sessionError,
+        } = await supabase.auth.getSession();
+
+        if (sessionError) throw sessionError;
+        if (!mounted) return;
+
+        if (!session?.user) {
+          clearAccess();
+          setLoadingAuth(false);
+          return;
         }
-      };
 
-    initializeAuth();
+        const {
+          data: { user: authUser },
+          error,
+        } = await supabase.auth.getUser();
+
+        if (error) throw error;
+        if (!mounted) return;
+
+        if (!authUser) {
+          clearAccess();
+          setLoadingAuth(false);
+          return;
+        }
+
+        await processUser(authUser);
+      } catch (error) {
+        console.error("Failed to initialize auth:", error);
+
+        if (mounted) {
+          clearAccess();
+          setAccessError("Unable to verify your login.");
+          setLoadingAuth(false);
+        }
+      }
+    };
+
+    void initializeAuth();
 
     const {
       data: { subscription },
-    } =
-      supabase.auth.onAuthStateChange(
-        async (
-          event,
-          session
-        ) => {
-          if (!mounted) {
-            return;
-          }
+    } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (!mounted) return;
 
-          /*
-            SIGNED_OUT will also fire after
-            denyAccess() calls signOut().
-          */
-          if (
-            event === "SIGNED_OUT" ||
-            !session?.user
-          ) {
-            clearAccess();
-            setLoadingAuth(false);
-            return;
-          }
-
-          const authUser =
-            session.user;
-
-          setUser(authUser);
-
-          const hasAccess =
-            await loadUserAccess(
-              authUser
-            );
-
-          if (!hasAccess) {
-            await denyAccess();
-          }
-
-          if (mounted) {
-            setLoadingAuth(false);
-          }
+        if (event === "INITIAL_SESSION") {
+          // Initial session is handled by initializeAuth().
+          return;
         }
-      );
+
+        if (event === "SIGNED_OUT" || !session?.user) {
+          clearAccess();
+          setLoadingAuth(false);
+          return;
+        }
+
+        // Defer Supabase queries until after the auth callback.
+        void Promise.resolve().then(() => {
+          if (mounted) {
+            return processUser(session.user);
+          }
+        });
+      },
+    );
 
     return () => {
       mounted = false;
@@ -260,6 +223,7 @@ const denyAccess = async () => {
         companyId,
         loadingAuth,
         accessError,
+        isPlatformAdmin,
       }}
     >
       {children}
@@ -268,12 +232,11 @@ const denyAccess = async () => {
 }
 
 export function useAuth() {
-  const context =
-    useContext(AuthContext);
+  const context = useContext(AuthContext);
 
   if (!context) {
     throw new Error(
-      "useAuth must be used inside AuthProvider"
+      "useAuth must be used inside AuthProvider",
     );
   }
 

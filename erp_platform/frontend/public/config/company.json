@@ -1,0 +1,139 @@
+
+{
+  "company": {
+    "name": "Ranissa ERP"
+  },
+  "theme": {
+    "preset": "forestGreen",
+    "mode": "light",
+    "borderRadius": 8,
+    "density": "compact",
+    "fontFamily": "Arial"
+  },
+  "modules": {
+    "dashboard": true,
+    "company": true,
+    "users": true,
+    "customers": true,
+    "products": true,
+    "sales": true,
+    "inventory": true,
+    "reports": true,
+    "production": true,
+    "finance": false
+  },
+  "sidebar": {
+    "items": [
+      {
+        "id": "dashboard",
+        "label": "Dashboard",
+        "path": "/",
+        "enabled": true
+      },
+      {
+        "id": "company",
+        "label": "Company",
+        "path": "/company",
+        "enabled": true
+      },
+      {
+        "id": "users",
+        "label": "Users",
+        "path": "/users",
+        "enabled": true
+      },
+      {
+        "id": "customers",
+        "label": "Customers",
+        "path": "/customers",
+        "enabled": true
+      },
+      {
+        "id": "products",
+        "label": "Products",
+        "path": "/products",
+        "enabled": true
+      },
+      {
+        "id": "sales",
+        "label": "Sales",
+        "path": "/sales",
+        "enabled": true
+      },
+      {
+        "id": "inventory",
+        "label": "Inventory",
+        "path": "/inventory",
+        "enabled": true
+      },
+      {
+        "id": "production",
+        "label": "Production",
+        "path": "/production",
+        "enabled": true
+      },
+      {
+        "id": "reports",
+        "label": "Reports",
+        "path": "/reports",
+        "enabled": true
+      },
+	{
+        "id": "Payroll",
+        "label": "payroll",
+        "path": "/payroll",
+        "enabled": true
+      }
+    ],
+    "customSections": [
+      {
+        "id": "production-workflow",
+        "label": "Customer Workflow",
+        "enabled": true,
+        "items": [
+          {
+            "id": "cutting",
+            "label": "Cutting",
+            "path": "/production/cutting",
+            "enabled": true
+          },
+          {
+            "id": "stitching",
+            "label": "Stitching",
+            "path": "/production/stitching",
+            "enabled": true
+          },
+          {
+            "id": "finishing",
+            "label": "Finishing",
+            "path": "/production/finishing",
+            "enabled": true
+          }
+        ]
+      }
+    ]
+  },
+  "dashboard": {
+    "kpis": [
+      "total_sales",
+      "sales_orders",
+      "production",
+      "receivables"
+    ],
+    "widgets": [
+      "recent_sales_orders",
+      "production_status",
+      "sales_trend"
+    ]
+  },
+  "labels": {
+    "dashboard": "Executive Dashboard",
+    "customers": "Customers",
+    "products": "Products",
+    "sales": "Sales",
+    "inventory": "Inventory",
+    "reports": "Reports",
+    "users": "Users",
+    "company": "Company"
+  }
+}

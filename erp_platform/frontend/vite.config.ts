@@ -7,15 +7,16 @@ export default defineConfig({
   server: {
     host: "0.0.0.0",
     port: 5173,
-    allowedHosts: [
-      "mortgages-norm-texas-vision.trycloudflare.com",
-    ],
+    //allowedHosts: [
+    //  "mortgages-norm-texas-vision.trycloudflare.com",
+    //],
 
     proxy: {
       "/api": {
-        target: "http://localhost:8000",
+      target: "http://127.0.0.1:8000",
+      //target: "http://168.144.155.102:8000",
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ""),
+	//    rewrite: (path) => path.replace(/^\/api/, ""),
       },
     },
   },

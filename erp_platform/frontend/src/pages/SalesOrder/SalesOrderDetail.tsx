@@ -17,23 +17,7 @@ import {
   Typography,
 } from "@mui/material";
 
-<<<<<<< HEAD
-import {
-  fetchSalesOrder,
-  createSalesOrderItem,
-  deleteSalesOrderItem,
-  fetchSalesProducts,
-  updateSalesOrderItem,
-  updateSalesOrder,
-  fetchSalesCustomers,
-  type SalesOrder,
-  type SalesOrderItem,
-  type SalesProduct,
-  type SalesCustomer,
-} from "../../services/sales";
-
-=======
-import { fetchSalesOrder ,
+import { 	fetchSalesOrder,
 	createSalesOrderItem,
 	deleteSalesOrder,
  	deleteSalesOrderItem,
@@ -44,38 +28,38 @@ import { fetchSalesOrder ,
 	type SalesProduct,
 	fetchSalesCustomers,
 	type SalesCustomer,
+	type SalesOrder,
+	type SalesOrderItem,
 } from "../../services/sales";
 
-type SalesOrderItem = {
-  id: string;
-  product_id: string | null;
-
-  sku: string | null;
-  style_code: string | null;
-  product_name: string | null;
-  color: string | null;
-  size: string | null;
-
-  quantity: number;
-  unit_price: number;
-  line_total: number;
-};
-
-
-type SalesOrder = {
-  id: string;
-  order_number: string;
-  order_date: string;
-  status: string;
-  total_amount: number;
-
-  customer_id: string;
-  customer_name: string | null;
-
-  items: SalesOrderItem[];
-};
-
->>>>>>> 9bef274 (Notification changes added in this commit)
+//type SalesOrderItem = {
+//  id: string;
+//  product_id: string | null;
+//
+//  sku: string | null;
+//  style_code: string | null;
+//  product_name: string | null;
+//  color: string | null;
+//  size: string | null;
+//
+//  quantity: number;
+//  unit_price: number;
+//  line_total: number;
+//};
+//
+//
+//type SalesOrder = {
+//  id: string;
+//  order_number: string;
+//  order_date: string;
+//  status: string;
+//  total_amount: number;
+//
+//  customer_id: string;
+//  customer_name: string | null;
+//
+//  items?: SalesOrderItem[];
+//};
 export default function SalesOrderDetail() {
   const { orderId } = useParams();
   const navigate = useNavigate();
@@ -95,7 +79,7 @@ export default function SalesOrderDetail() {
 
   const [editCustomerId, setEditCustomerId] = useState("");
   const [editOrderDate, setEditOrderDate] = useState("");
-  const [editStatus, setEditStatus] = useState("");
+ // const [editStatus, setEditStatus] = useState("");
   const [customers, setCustomers] = useState<SalesCustomer[]>([]);
 
   useEffect(() => {
@@ -186,15 +170,13 @@ const handleApproveOrder = async () => {
   try {
     await approveSalesOrder(orderId);
 
-    const refreshedOrder =
-      await fetchSalesOrder(orderId);
+ //   const refreshedOrder =      await fetchSalesOrder(orderId);
 
-    setOrder(refreshedOrder);
+   // setOrder(refreshedOrder);
 
-    const refreshedAvailability =
-      await fetchSalesOrderAvailability(orderId);
+//    const refreshedAvailability =      await fetchSalesOrderAvailability(orderId);
 
-    setAvailability(refreshedAvailability);
+  //  setAvailability(refreshedAvailability);
   } catch (error) {
     console.error(
       "Failed to approve sales order:",
@@ -221,8 +203,8 @@ const handleAddItem = async () => {
       unit_price: unitPrice,
     });
 
-    const refreshedOrder = await fetchSalesOrder(orderId);
-    setOrder(refreshedOrder);
+    //const refreshedOrder = await fetchSalesOrder(orderId);
+//    setOrder(refreshedOrder);
 
     setSelectedProduct(null);
     setQuantity(1);
@@ -259,8 +241,8 @@ const handleSaveHeader = async () => {
       //status: editStatus,
     });
 
-    const refreshedOrder = await fetchSalesOrder(orderId);
-    setOrder(refreshedOrder);
+  //  const refreshedOrder = await fetchSalesOrder(orderId);
+  //  setOrder(refreshedOrder);
 
     setEditingHeader(false);
   } catch (error) {
@@ -281,10 +263,9 @@ const handleDeleteItem = async (itemId: string) => {
 
     // Reload from backend so we get the
     // database-calculated total_amount.
-    const refreshedOrder =
-      await fetchSalesOrder(orderId);
+//    const refreshedOrder =      await fetchSalesOrder(orderId);
 
-    setOrder(refreshedOrder);
+ //   setOrder(refreshedOrder);
   } catch (error) {
     console.error(
       "Failed to delete sales order item:",
@@ -298,7 +279,7 @@ const handleConfirmOrder = async () => {
     return;
   }
 
-  if (order.items.length === 0) {
+  if (order.items?.length === 0) {
     alert("Add at least one item before confirming the order.");
     return;
   }
@@ -308,10 +289,9 @@ const handleConfirmOrder = async () => {
       status: "CONFIRMED",
     });
 
-    const refreshedOrder =
-      await fetchSalesOrder(orderId);
+//    const refreshedOrder =      await fetchSalesOrder(orderId);
 
-    setOrder(refreshedOrder);
+    //setOrder(refreshedOrder);
   } catch (error) {
     console.error(
       "Failed to confirm sales order:",
@@ -342,10 +322,9 @@ const handleCancelOrder = async () => {
       status: "CANCELLED",
     });
 
-    const refreshedOrder =
-      await fetchSalesOrder(orderId);
+//    const refreshedOrder =      await fetchSalesOrder(orderId);
 
-    setOrder(refreshedOrder);
+    //setOrder(refreshedOrder);
   } catch (error) {
     console.error(
       "Failed to cancel sales order:",
@@ -415,15 +394,14 @@ const handleSaveItem = async (itemId: string) => {
       }
     );
 
-    const refreshedOrder = await fetchSalesOrder(orderId);
-    setOrder(refreshedOrder);
+    //const refreshedOrder = await fetchSalesOrder(orderId);
+  //  setOrder(refreshedOrder);
 
     setEditingItemId(null);
   } catch (error) {
     console.error("Failed to update sales order item:", error);
   }
 };
-
 
   return (
     <Box>
@@ -616,7 +594,7 @@ const handleSaveItem = async (itemId: string) => {
   <Button
     variant="contained"
     onClick={handleConfirmOrder}
-    disabled={order.items.length === 0}
+    disabled={order.items?.length === 0}
     sx={{ ml: 1 }}
   >
     Confirm Order

@@ -15,21 +15,21 @@ import Profile from "../pages/Profile/Profile";
 import Settings from "../pages/Settings/Settings";
 import Users from "../pages/Users/Users";
 import AdminRoute from "./AdminRoute";
-function PlaceholderPage({ title }: { title: string }) {
-  return (
-    <div>
-      <h1>{title}</h1>
-      <p>This module is under development.</p>
-    </div>
-  );
-}
+import Notifications from "../pages/Notifications/Notifications";
+import Production from "../pages/Production/Production";
+import Payroll from "../pages/Payroll/Payroll";
+import EmployeePayrollStatement from "../pages/Payroll/EmployeePayrollStatement";
+//function PlaceholderPage({ title }: { title: string }) {
+//  return (
+//    <div>
+//      <h1>{title}</h1>
+//      <p>This module is under development.</p>
+//    </div>
+//  );
+//}
 
 export default function AppRoutes() {
   return (
-<<<<<<< HEAD
-    <Routes>
-      <Route element={<MainLayout />}>
-=======
     <Routes> 
     <Route
        path="/login"
@@ -42,7 +42,7 @@ export default function AppRoutes() {
          </ProtectedRoute>
          }
 >
->>>>>>> 9bef274 (Notification changes added in this commit)
+
         <Route
           path="/profile"
           element={<Profile />}
@@ -73,7 +73,7 @@ export default function AppRoutes() {
           path="/products"
 	  element={<Products />}
         />
-
+       <Route path="/production" element={<Production />} />
         <Route
           path="/sales"
 	  element={<SalesOrder />}
@@ -98,11 +98,18 @@ export default function AppRoutes() {
           path="/reports"
          element={<Reports />}
         />
-
-        <Route
-          path="/settings"
-          element={<PlaceholderPage title="Settings" />}
-        />
+<Route
+  path="/payroll"
+  element={<Payroll />}
+/>
+<Route
+  path="/payroll/employees/:employeeId/statement"
+  element={<EmployeePayrollStatement />}
+/>
+	<Route
+	  path="/notifications"
+	  element={<Notifications />}
+	/>
       </Route>
     </Routes>
   );
