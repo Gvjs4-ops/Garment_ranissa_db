@@ -30,6 +30,11 @@ import EmployeePayrollStatement from "../pages/Payroll/EmployeePayrollStatement"
 
 export default function AppRoutes() {
   return (
+<<<<<<< HEAD
+=======
+    <Routes>
+      <Route element={<MainLayout />}>
+>>>>>>> 2b09e3feb1aee01fd60582db13050e4f2edce615
     <Routes> 
     <Route
        path="/login"
@@ -42,7 +47,10 @@ export default function AppRoutes() {
          </ProtectedRoute>
          }
 >
+<<<<<<< HEAD
 
+=======
+>>>>>>> 2b09e3feb1aee01fd60582db13050e4f2edce615
         <Route
           path="/profile"
           element={<Profile />}

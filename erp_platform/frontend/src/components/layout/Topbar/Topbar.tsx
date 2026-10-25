@@ -34,6 +34,10 @@ import NotificationsNoneOutlinedIcon from
   "@mui/icons-material/NotificationsNoneOutlined";
 import LogoutOutlinedIcon from
   "@mui/icons-material/LogoutOutlined";
+<<<<<<< HEAD
+=======
+
+>>>>>>> 2b09e3feb1aee01fd60582db13050e4f2edce615
 import SettingsOutlinedIcon from
   "@mui/icons-material/SettingsOutlined";
 import PersonOutlineOutlinedIcon from
@@ -81,6 +85,7 @@ interface NotificationItem {
   unread: boolean;
 }
 
+<<<<<<< HEAD
 interface ReportsSummaryResponse {
   low_stock_items?: LowStockItem[];
   recent_orders?: RecentOrder[];
@@ -91,6 +96,8 @@ interface SupportPermissions {
   can_full_support: boolean;
 }
 
+=======
+>>>>>>> 2b09e3feb1aee01fd60582db13050e4f2edce615
 export default function Topbar() {
   const TOPBAR_HEIGHT = 72;
 
@@ -458,6 +465,7 @@ export default function Topbar() {
             gap: 1,
           }}
         >
+<<<<<<< HEAD
           {/* LEFT */}
           <Typography
             variant="h6"
@@ -468,6 +476,23 @@ export default function Topbar() {
           </Typography>
 
           <Box sx={{ flexGrow: 1 }} />
+=======
+          {/* NOTIFICATION BUTTON */}
+
+          <IconButton
+            onClick={
+              handleOpenNotifications
+            }
+          >
+            <Badge
+              badgeContent={unreadCount}
+              color="error"
+            >
+              <NotificationsNoneOutlinedIcon />
+            </Badge>
+          </IconButton>
+
+>>>>>>> 2b09e3feb1aee01fd60582db13050e4f2edce615
 
           {/* RIGHT */}
           <Box
@@ -989,6 +1014,7 @@ export default function Topbar() {
                 Settings
               </MenuItem>
 
+<<<<<<< HEAD
               <Divider />
 
               <MenuItem onClick={handleLogout}>
@@ -1024,8 +1050,39 @@ export default function Topbar() {
               <Alert severity="error">
                 {supportPermissionError}
               </Alert>
+=======
+          {/* COMPANY */}
+
+          <Autocomplete
+            size="small"
+            options={companies}
+            value={activeCompany}
+            loading={loadingCompanies}
+            onChange={(_, value) => {
+              setActiveCompany(value);
+            }}
+            getOptionLabel={(company) => company.name}
+            isOptionEqualToValue={(option, value) =>
+              option.id === value.id
+            }
+            isOptionEqualToValue={(
+              option,
+              value
+            ) =>
+              option.id === value.id
+            }
+            sx={{
+              width: 250,
+            }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Company"
+              />
+>>>>>>> 2b09e3feb1aee01fd60582db13050e4f2edce615
             )}
 
+<<<<<<< HEAD
             {supportActionError && (
               <Alert severity="error">
                 {supportActionError}
@@ -1034,6 +1091,42 @@ export default function Topbar() {
 
             {supportPermissionLoading ? (
               <Box
+=======
+
+          {/* USER BUTTON */}
+
+          <Box
+            onClick={
+              handleOpenUserMenu
+            }
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+              cursor: "pointer",
+              borderRadius: 2,
+              px: 1,
+              py: 0.5,
+
+              "&:hover": {
+                backgroundColor:
+                  "action.hover",
+              },
+            }}
+          >
+            <Avatar
+              sx={{
+                width: 36,
+                height: 36,
+              }}
+            >
+              A
+            </Avatar>
+
+            <Box>
+              <Typography
+                variant="body2"
+>>>>>>> 2b09e3feb1aee01fd60582db13050e4f2edce615
                 sx={{
                   display: "flex",
                   alignItems: "center",

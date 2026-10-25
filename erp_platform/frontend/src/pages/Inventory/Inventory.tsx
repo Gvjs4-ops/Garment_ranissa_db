@@ -34,6 +34,10 @@ import type {
   EditableInventoryItem,
   EditStockInput,
 } from "./EditStockDialog";
+<<<<<<< HEAD
+=======
+import { fetchProducts } from "../../api/products";
+>>>>>>> 2b09e3feb1aee01fd60582db13050e4f2edce615
 import HistoryIcon from "@mui/icons-material/History";
 
 import StockMovementHistoryDialog from "./StockMovementHistoryDialog";
@@ -76,10 +80,51 @@ export default function Inventory() {
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
   const [historyProductName, setHistoryProductName] = useState("");
   const [stockMovements, setStockMovements] = useState<StockMovement[]>([]);
+<<<<<<< HEAD
 const loadInventory = async () => {
   try {
     const data: InventoryItem[] =
       await apiFetch("/api/inventory");
+=======
+
+  const [products, setProducts] =
+    useState<StockProduct[]>([]);
+
+  const [warehouses, setWarehouses] =
+    useState<Warehouse[]>([]);
+
+  const [editDialogOpen, setEditDialogOpen] =
+    useState(false);
+
+  const [
+    selectedInventoryItem,
+    setSelectedInventoryItem,
+  ] = useState<EditableInventoryItem | null>(null);
+
+  const loadInventory = async () => {
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/inventory`,
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          `Failed to fetch inventory: ${response.status}`,
+        );
+      }
+
+      const data: InventoryItem[] =
+        await response.json();
+
+      setInventory(data);
+    } catch (error) {
+      console.error(
+        "Failed to load inventory:",
+        error,
+      );
+    }
+  };
+>>>>>>> 2b09e3feb1aee01fd60582db13050e4f2edce615
 
     setInventory(data);
   } catch (error) {
@@ -455,6 +500,7 @@ const loadWarehouses = async () => {
           </Table>
         </CardContent>
       </Card>
+<<<<<<< HEAD
       
           <ReceiveStockDialog
           open={receiveDialogOpen}
@@ -487,3 +533,38 @@ const loadWarehouses = async () => {
       </Box>
     );
   }
+=======
+
+      <ReceiveStockDialog
+        open={receiveDialogOpen}
+        products={products}
+        warehouses={warehouses}
+        onClose={() =>
+          setReceiveDialogOpen(false)
+        }
+        onSave={handleReceiveStock}
+      />
+
+      <EditStockDialog
+	  open={editDialogOpen}
+	  item={selectedInventoryItem}
+	  onClose={() => {
+	    setEditDialogOpen(false);
+	    setSelectedInventoryItem(null);
+	  }}
+	  onSave={handleUpdateStock}
+	/>
+	<StockMovementHistoryDialog
+	  open={historyDialogOpen}
+	  productName={historyProductName}
+	  movements={stockMovements}
+	  onClose={() => {
+	  setHistoryDialogOpen(false);
+	  setStockMovements([]);
+	  setHistoryProductName("");
+        }}
+        />
+    </Box>
+  );
+}
+>>>>>>> 2b09e3feb1aee01fd60582db13050e4f2edce615
