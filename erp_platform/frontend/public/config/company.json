@@ -70,7 +70,28 @@
         "id": "production",
         "label": "Production",
         "path": "/production",
-        "enabled": true
+        "enabled": true,
+	"children" :[
+          {
+            "id": "cutting",
+            "label": "Cutting",
+            "path": "/production/cutting",
+            "enabled": true
+          },
+          {
+            "id": "stitching",
+            "label": "Stitching",
+            "path": "/production/stitching",
+            "enabled": true
+          },
+          {
+            "id": "finishing",
+            "label": "Finishing",
+            "path": "/production/finishing",
+            "enabled": true
+          }
+
+	]
       },
       {
         "id": "reports",
@@ -91,24 +112,6 @@
         "label": "Customer Workflow",
         "enabled": true,
         "items": [
-          {
-            "id": "cutting",
-            "label": "Cutting",
-            "path": "/production/cutting",
-            "enabled": true
-          },
-          {
-            "id": "stitching",
-            "label": "Stitching",
-            "path": "/production/stitching",
-            "enabled": true
-          },
-          {
-            "id": "finishing",
-            "label": "Finishing",
-            "path": "/production/finishing",
-            "enabled": true
-          }
         ]
       }
     ]

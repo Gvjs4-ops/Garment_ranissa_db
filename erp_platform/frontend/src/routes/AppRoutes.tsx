@@ -19,6 +19,7 @@ import Notifications from "../pages/Notifications/Notifications";
 import Production from "../pages/Production/Production";
 import Payroll from "../pages/Payroll/Payroll";
 import EmployeePayrollStatement from "../pages/Payroll/EmployeePayrollStatement";
+import AdvancePayments from "../pages/Payroll/AdvancePayments";
 //function PlaceholderPage({ title }: { title: string }) {
 //  return (
 //    <div>
@@ -30,11 +31,7 @@ import EmployeePayrollStatement from "../pages/Payroll/EmployeePayrollStatement"
 
 export default function AppRoutes() {
   return (
-<<<<<<< HEAD
-=======
-    <Routes>
-      <Route element={<MainLayout />}>
->>>>>>> 2b09e3feb1aee01fd60582db13050e4f2edce615
+
     <Routes> 
     <Route
        path="/login"
@@ -47,10 +44,7 @@ export default function AppRoutes() {
          </ProtectedRoute>
          }
 >
-<<<<<<< HEAD
 
-=======
->>>>>>> 2b09e3feb1aee01fd60582db13050e4f2edce615
         <Route
           path="/profile"
           element={<Profile />}
@@ -119,6 +113,7 @@ export default function AppRoutes() {
 	  element={<Notifications />}
 	/>
       </Route>
+<Route path="/payroll/advances" element={<AdvancePayments />} />
     </Routes>
   );
 }

@@ -8,13 +8,8 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import BusinessIcon from "@mui/icons-material/Business";
 
 import type { SvgIconComponent } from "@mui/icons-material";
-<<<<<<< HEAD
-
 import ManageAccountsOutlinedIcon from "@mui/icons-material/ManageAccountsOutlined";
 
-=======
-import ManageAccountsOutlinedIcon from "@mui/icons-material/ManageAccountsOutlined";
->>>>>>> 2b09e3feb1aee01fd60582db13050e4f2edce615
 export interface NavigationItem {
   id: string;
   title: string;

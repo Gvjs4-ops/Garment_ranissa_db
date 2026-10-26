@@ -17,11 +17,7 @@ import {
   Typography,
 } from "@mui/material";
 
-<<<<<<< HEAD
-import { 	fetchSalesOrder,
-=======
 import { fetchSalesOrder ,
->>>>>>> 2b09e3feb1aee01fd60582db13050e4f2edce615
 	createSalesOrderItem,
 	deleteSalesOrder,
  	deleteSalesOrderItem,
@@ -36,7 +32,6 @@ import { fetchSalesOrder ,
 	type SalesOrderItem,
 } from "../../services/sales";
 
-<<<<<<< HEAD
 //type SalesOrderItem = {
 //  id: string;
 //  product_id: string | null;
@@ -65,37 +60,7 @@ import { fetchSalesOrder ,
 //
 //  items?: SalesOrderItem[];
 //};
-=======
-type SalesOrderItem = {
-  id: string;
-  product_id: string | null;
 
-  sku: string | null;
-  style_code: string | null;
-  product_name: string | null;
-  color: string | null;
-  size: string | null;
-
-  quantity: number;
-  unit_price: number;
-  line_total: number;
-};
-
-
-type SalesOrder = {
-  id: string;
-  order_number: string;
-  order_date: string;
-  status: string;
-  total_amount: number;
-
-  customer_id: string;
-  customer_name: string | null;
-
-  items: SalesOrderItem[];
-};
-
->>>>>>> 2b09e3feb1aee01fd60582db13050e4f2edce615
 export default function SalesOrderDetail() {
   const { orderId } = useParams();
   const navigate = useNavigate();

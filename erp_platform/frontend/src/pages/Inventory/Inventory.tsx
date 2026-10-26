@@ -19,6 +19,7 @@ import {
 
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
+import HistoryIcon from "@mui/icons-material/History";
 
 import { apiFetch } from "../../api/apiClient";
 import { fetchProducts } from "../../api/products";
@@ -34,14 +35,10 @@ import type {
   EditableInventoryItem,
   EditStockInput,
 } from "./EditStockDialog";
-<<<<<<< HEAD
-=======
-import { fetchProducts } from "../../api/products";
->>>>>>> 2b09e3feb1aee01fd60582db13050e4f2edce615
-import HistoryIcon from "@mui/icons-material/History";
 
 import StockMovementHistoryDialog from "./StockMovementHistoryDialog";
 import type { StockMovement } from "./StockMovementHistoryDialog";
+
 interface InventoryItem {
   id: string;
   product_id: string;
@@ -67,55 +64,21 @@ interface InventoryItem {
 }
 
 export default function Inventory() {
-  const [inventory, setInventory] =
-    useState<InventoryItem[]>([]);
-
+  const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [search, setSearch] = useState("");
   const [receiveDialogOpen, setReceiveDialogOpen] = useState(false);
   const [products, setProducts] = useState<StockProduct[]>([]);
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedInventoryItem, setSelectedInventoryItem] =
-  useState<EditableInventoryItem | null>(null);
+    useState<EditableInventoryItem | null>(null);
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
   const [historyProductName, setHistoryProductName] = useState("");
   const [stockMovements, setStockMovements] = useState<StockMovement[]>([]);
-<<<<<<< HEAD
-const loadInventory = async () => {
-  try {
-    const data: InventoryItem[] =
-      await apiFetch("/api/inventory");
-=======
-
-  const [products, setProducts] =
-    useState<StockProduct[]>([]);
-
-  const [warehouses, setWarehouses] =
-    useState<Warehouse[]>([]);
-
-  const [editDialogOpen, setEditDialogOpen] =
-    useState(false);
-
-  const [
-    selectedInventoryItem,
-    setSelectedInventoryItem,
-  ] = useState<EditableInventoryItem | null>(null);
 
   const loadInventory = async () => {
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/inventory`,
-      );
-
-      if (!response.ok) {
-        throw new Error(
-          `Failed to fetch inventory: ${response.status}`,
-        );
-      }
-
-      const data: InventoryItem[] =
-        await response.json();
-
+      const data: InventoryItem[] = await apiFetch("/api/inventory");
       setInventory(data);
     } catch (error) {
       console.error(
@@ -124,16 +87,7 @@ const loadInventory = async () => {
       );
     }
   };
->>>>>>> 2b09e3feb1aee01fd60582db13050e4f2edce615
 
-    setInventory(data);
-  } catch (error) {
-    console.error(
-      "Failed to load inventory:",
-      error,
-    );
-  }
-};
   const loadProducts = async () => {
     try {
       const data = await fetchProducts();
@@ -155,19 +109,19 @@ const loadInventory = async () => {
     }
   };
 
-const loadWarehouses = async () => {
-  try {
-    const data: Warehouse[] =
-      await apiFetch("/api/inventory/warehouses");
+  const loadWarehouses = async () => {
+    try {
+      const data: Warehouse[] =
+        await apiFetch("/api/inventory/warehouses");
 
-    setWarehouses(data);
-  } catch (error) {
-    console.error(
-      "Failed to load warehouses:",
-      error,
-    );
-  }
-};
+      setWarehouses(data);
+    } catch (error) {
+      console.error(
+        "Failed to load warehouses:",
+        error,
+      );
+    }
+  };
 
   useEffect(() => {
     void loadInventory();
@@ -210,102 +164,102 @@ const loadWarehouses = async () => {
     return "success";
   };
 
-    const getStatusLabel = (
-      status: InventoryItem["stock_status"],
-    ) => {
-      if (status === "OUT_OF_STOCK") {
-        return "Out of Stock";
-      }
+  const getStatusLabel = (
+    status: InventoryItem["stock_status"],
+  ) => {
+    if (status === "OUT_OF_STOCK") {
+      return "Out of Stock";
+    }
 
-      if (status === "LOW_STOCK") {
-        return "Low Stock";
-      }
+    if (status === "LOW_STOCK") {
+      return "Low Stock";
+    }
 
-      return "In Stock";
-    };
+    return "In Stock";
+  };
 
-    const handleReceiveStock = async (
-      receipt: ReceiveStockInput,
-    ) => {
-      try {
-        await apiFetch("/api/inventory/receive", {
-          method: "POST",
-          body: JSON.stringify(receipt),
-        });
-
-        await loadInventory();
-      } catch (error) {
-        console.error(
-          "Failed to receive stock:",
-          error,
-        );
-        throw error;
-      }
-    };
-
-    const handleEditStock = (
-      item: InventoryItem,
-    ) => {
-      setSelectedInventoryItem({
-        id: item.id,
-        product_name: item.product_name,
-        warehouse_name: item.warehouse_name,
-        quantity_on_hand: Number(
-          item.quantity_on_hand,
-        ),
-        reorder_level: Number(
-          item.reorder_level,
-        ),
-        unit: item.unit,
+  const handleReceiveStock = async (
+    receipt: ReceiveStockInput,
+  ) => {
+    try {
+      await apiFetch("/api/inventory/receive", {
+        method: "POST",
+        body: JSON.stringify(receipt),
       });
 
-      setEditDialogOpen(true);
-    };
+      await loadInventory();
+    } catch (error) {
+      console.error(
+        "Failed to receive stock:",
+        error,
+      );
+      throw error;
+    }
+  };
 
-    const handleUpdateStock = async (
-      inventoryId: string,
-      update: EditStockInput,
-    ) => {
-      try {
+  const handleEditStock = (
+    item: InventoryItem,
+  ) => {
+    setSelectedInventoryItem({
+      id: item.id,
+      product_name: item.product_name,
+      warehouse_name: item.warehouse_name,
+      quantity_on_hand: Number(
+        item.quantity_on_hand,
+      ),
+      reorder_level: Number(
+        item.reorder_level,
+      ),
+      unit: item.unit,
+    });
+
+    setEditDialogOpen(true);
+  };
+
+  const handleUpdateStock = async (
+    inventoryId: string,
+    update: EditStockInput,
+  ) => {
+    try {
+      await apiFetch(
+        `/api/inventory/${inventoryId}`,
+        {
+          method: "PUT",
+          body: JSON.stringify(update),
+        },
+      );
+
+      await loadInventory();
+    } catch (error) {
+      console.error(
+        "Failed to update stock:",
+        error,
+      );
+      throw error;
+    }
+  };
+
+  const handleViewHistory = async (
+    item: InventoryItem,
+  ) => {
+    try {
+      const data: StockMovement[] =
         await apiFetch(
-          `/api/inventory/${inventoryId}`,
-          {
-            method: "PUT",
-            body: JSON.stringify(update),
-          },
+          `/api/inventory/${item.id}/movements`,
         );
 
-        await loadInventory();
-      } catch (error) {
-        console.error(
-          "Failed to update stock:",
-          error,
-        );
-        throw error;
-      }
-    };
-
-    const handleViewHistory = async (
-      item: InventoryItem,
-    ) => {
-      try {
-        const data: StockMovement[] =
-          await apiFetch(
-            `/api/inventory/${item.id}/movements`,
-          );
-
-        setStockMovements(data);
-        setHistoryProductName(
-          item.product_name,
-        );
-        setHistoryDialogOpen(true);
-      } catch (error) {
-        console.error(
-          "Failed to load stock movements:",
-          error,
-        );
-      }
-    };
+      setStockMovements(data);
+      setHistoryProductName(
+        item.product_name,
+      );
+      setHistoryDialogOpen(true);
+    } catch (error) {
+      console.error(
+        "Failed to load stock movements:",
+        error,
+      );
+    }
+  };
 
   return (
     <Box>
@@ -382,7 +336,7 @@ const loadWarehouses = async () => {
                 </TableCell>
                 <TableCell align="right">
                   Available
-                               </TableCell>
+                </TableCell>
                 <TableCell align="right">
                   Reorder Level
                 </TableCell>
@@ -469,21 +423,21 @@ const loadWarehouses = async () => {
                         )}
                       />
                     </TableCell>
-		    <TableCell align="center">
-		  <IconButton
-		    size="small"
-		    onClick={() => handleEditStock(item)}
-		  >
-		    <EditIcon fontSize="small" />
-		  </IconButton>
+                    <TableCell align="center">
+                      <IconButton
+                        size="small"
+                        onClick={() => handleEditStock(item)}
+                      >
+                        <EditIcon fontSize="small" />
+                      </IconButton>
 
-		  <IconButton
-		    size="small"
-		    onClick={() => handleViewHistory(item)}
-		  >
-	  	     <HistoryIcon fontSize="small" />
-		    </IconButton>
-		   </TableCell>
+                      <IconButton
+                        size="small"
+                        onClick={() => handleViewHistory(item)}
+                      >
+                        <HistoryIcon fontSize="small" />
+                      </IconButton>
+                    </TableCell>
                   </TableRow>
                 ))
               ) : (
@@ -500,71 +454,35 @@ const loadWarehouses = async () => {
           </Table>
         </CardContent>
       </Card>
-<<<<<<< HEAD
-      
-          <ReceiveStockDialog
-          open={receiveDialogOpen}
-          products={products}
-          warehouses={warehouses}
-          onClose={() => setReceiveDialogOpen(false)}
-          onSave={handleReceiveStock}
-        />
-
-        <EditStockDialog
-          open={editDialogOpen}
-          item={selectedInventoryItem}
-          onClose={() => {
-            setEditDialogOpen(false);
-            setSelectedInventoryItem(null);
-          }}
-          onSave={handleUpdateStock}
-        />
-
-        <StockMovementHistoryDialog
-          open={historyDialogOpen}
-          productName={historyProductName}
-          movements={stockMovements}
-          onClose={() => {
-            setHistoryDialogOpen(false);
-            setStockMovements([]);
-            setHistoryProductName("");
-          }}
-        />
-      </Box>
-    );
-  }
-=======
 
       <ReceiveStockDialog
         open={receiveDialogOpen}
         products={products}
         warehouses={warehouses}
-        onClose={() =>
-          setReceiveDialogOpen(false)
-        }
+        onClose={() => setReceiveDialogOpen(false)}
         onSave={handleReceiveStock}
       />
 
       <EditStockDialog
-	  open={editDialogOpen}
-	  item={selectedInventoryItem}
-	  onClose={() => {
-	    setEditDialogOpen(false);
-	    setSelectedInventoryItem(null);
-	  }}
-	  onSave={handleUpdateStock}
-	/>
-	<StockMovementHistoryDialog
-	  open={historyDialogOpen}
-	  productName={historyProductName}
-	  movements={stockMovements}
-	  onClose={() => {
-	  setHistoryDialogOpen(false);
-	  setStockMovements([]);
-	  setHistoryProductName("");
+        open={editDialogOpen}
+        item={selectedInventoryItem}
+        onClose={() => {
+          setEditDialogOpen(false);
+          setSelectedInventoryItem(null);
         }}
-        />
+        onSave={handleUpdateStock}
+      />
+
+      <StockMovementHistoryDialog
+        open={historyDialogOpen}
+        productName={historyProductName}
+        movements={stockMovements}
+        onClose={() => {
+          setHistoryDialogOpen(false);
+          setStockMovements([]);
+          setHistoryProductName("");
+        }}
+      />
     </Box>
   );
 }
->>>>>>> 2b09e3feb1aee01fd60582db13050e4f2edce615

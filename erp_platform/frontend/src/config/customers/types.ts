@@ -34,6 +34,7 @@ export interface SidebarItemConfig {
   label: string;
   path: string;
   enabled: boolean;
+  children?: SidebarItemConfig[];
 }
 
 export interface CustomSidebarSection {

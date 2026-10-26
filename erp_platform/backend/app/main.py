@@ -9,6 +9,7 @@ from app.api.users import router as users_router
 from app.api.reports import router as reports_router
 from app.api.production import router as production_router
 from app.api.payroll import router as payroll_router
+from app.api.advance_payments import router as advance_payments_router
 app = FastAPI(
     title=settings.APP_NAME,
     version="1.0.0",
@@ -32,6 +33,7 @@ app.include_router(users_router, prefix="/api")
 app.include_router(reports_router, prefix="/api")
 app.include_router(production_router, prefix="/api")
 app.include_router(payroll_router, prefix="/api")
+app.include_router(advance_payments_router, prefix="/api")
 @app.get("/")
 def root():
     return {

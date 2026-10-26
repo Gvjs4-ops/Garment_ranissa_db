@@ -77,10 +77,44 @@ export const defaultCustomerConfig: CustomerConfig = {
         enabled: true,
       },
       {
+  id: "production",
+  label: "Production",
+  path: "/production",
+  enabled: true,
+  children: [
+    {
+      id: "cutting",
+      label: "Cutting",
+      path:  "/production/cutting", 
+      enabled: true,
+    },
+    {
+      id: "stitching",
+      label: "Stitching",
+      path: "/production/cutting", 
+      enabled: true,
+    },
+    {
+      id: "finishing",
+      label: "Finishing",
+      path: "/production/cutting", 
+      enabled: true,
+    },
+  ],
+},
+      {
 	id: "payroll",
 	label: "Payroll",
 	path: "/payroll",
 	enabled: true,
+	children: [
+    		{
+      		id: "advance-payments",
+      		label: "Advance Payments",
+      		path: "/payroll/advances",
+      		enabled: true,
+    		},
+  	],
       },
     ],
 
@@ -95,10 +129,11 @@ export const defaultCustomerConfig: CustomerConfig = {
       "receivables",
     ],
 
-    widgets: [
-      "recent_sales_orders",
-      "production_status",
-      "sales_trend",
+    widgets: 	[
+            "run_erp_doctor.py",
+      "recent	_sales_orders",
+      "produc	tion_status",
+      "sales_	trend",
     ],
   },
 
